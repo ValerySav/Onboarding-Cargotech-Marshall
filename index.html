@@ -1,0 +1,1189 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>CargoTech MARSHALL · Путь перевозчика</title>
+<style>
+  :root{
+    --ink:#15233A; --ink2:#1E3050; --slate:#3A485E; --muted:#8A97A8; --hair:#E4E8EE;
+    --bg:#EDF1F6; --card:#FFFFFF; --panel:#F5F7FA; --accent:#E2620E; --accent-soft:#FBE9D8;
+    --pos:#2C7A4E; --pos-soft:#E8F2EC; --warn:#BE3A2B; --warn-soft:#FAE9E6; --blue:#2F6BD6;
+    --display:'Bahnschrift','Segoe UI Semibold',sans-serif; --body:'Calibri','Segoe UI',Arial,sans-serif;
+  }
+  *{box-sizing:border-box; margin:0; padding:0}
+  html,body{height:100%}
+  body{font-family:var(--body); background:var(--bg); color:var(--slate); font-size:14px; display:flex; flex-direction:column; overflow:hidden}
+  header{flex-shrink:0; background:var(--ink); color:#fff; padding:12px 22px; display:flex; align-items:center; gap:16px; box-shadow:0 2px 8px rgba(20,30,50,.18); z-index:5}
+  header .logo{font-family:var(--display); font-size:17px; font-weight:600; letter-spacing:1.5px}
+  header .logo span{color:var(--accent)}
+  header .sub{font-size:12px; color:#AEC0DC; border-left:1px solid rgba(255,255,255,.2); padding-left:14px}
+  header .spine{margin-left:auto; display:flex; align-items:center; gap:10px; font-size:12px; color:#AEC0DC}
+  header .spine b{font-family:var(--display); font-size:16px; font-weight:600; color:#fff}
+  header .spine .ar{color:var(--accent); font-family:var(--display)}
+  .wrap{flex:1; min-height:0; display:grid; grid-template-columns:392px 1fr; gap:16px; padding:16px; max-width:1560px; margin:0 auto; width:100%; overflow:hidden}
+  /* ---- left funnel ---- */
+  .funnel{display:flex; flex-direction:column; gap:8px; overflow-y:auto; padding-right:4px}
+  .funnel h2{font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); font-weight:700; margin:2px 2px 4px}
+  .stage{position:relative; background:var(--card); border:1px solid var(--hair); border-radius:11px; padding:13px 15px; cursor:pointer; transition:.12s; text-align:left}
+  .stage:hover{border-color:var(--accent)}
+  .stage.active{border-color:var(--accent); box-shadow:0 2px 10px rgba(226,98,14,.14)}
+  .stage.active::before{content:''; position:absolute; left:0; top:10px; bottom:10px; width:4px; border-radius:4px; background:var(--accent)}
+  .stage .row1{display:flex; align-items:baseline; gap:9px}
+  .stage .num{font-family:var(--display); font-size:13px; font-weight:600; color:var(--accent); flex:0 0 auto}
+  .stage .ttl{font-family:var(--display); font-size:15.5px; font-weight:600; color:var(--ink); flex:1}
+  .stage .met{font-size:11px; color:var(--muted); font-weight:700; flex:0 0 auto}
+  .stage .one{font-size:11.5px; color:var(--slate); margin-top:4px; line-height:1.35}
+  .stage .hint{font-size:10px; color:var(--muted); margin-top:6px; font-style:italic; opacity:.85}
+  .stage .hint b{color:var(--accent); font-style:normal}
+  /* ---- right detail ---- */
+  .detail{overflow-y:auto; padding:2px 6px 30px 2px}
+  .pane{display:none; animation:fade .18s ease}
+  .pane.show{display:block}
+  @keyframes fade{from{opacity:0; transform:translateY(4px)}to{opacity:1; transform:none}}
+  .kick{font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); font-weight:700}
+  .kick b{color:var(--accent)}
+  .pane h1{font-family:var(--display); font-size:27px; font-weight:600; color:var(--ink); margin:3px 0 4px; letter-spacing:.2px}
+  .pane .lead{font-size:14.5px; color:var(--slate); margin-bottom:14px; max-width:760px; line-height:1.5}
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:14px; align-items:start}
+  .box{background:var(--card); border:1px solid var(--hair); border-radius:12px; padding:15px 17px}
+  .box .bk{font-size:11px; letter-spacing:1px; text-transform:uppercase; font-weight:700; margin-bottom:7px}
+  .box.now .bk{color:var(--warn)} .box.prop .bk{color:var(--pos)}
+  .box p{font-size:13.5px; line-height:1.5}
+  .box b{color:var(--ink)}
+  .kir{display:flex; gap:11px; align-items:flex-start; background:var(--ink); color:#EAF0F8; border-radius:12px; padding:14px 17px; margin-top:14px}
+  .kir .av{flex:0 0 auto; width:34px; height:34px; border-radius:50%; background:var(--accent); color:#fff; font-family:var(--display); font-weight:600; display:flex; align-items:center; justify-content:center; font-size:15px}
+  .kir .kt{font-size:13.5px; line-height:1.5}
+  .kir .kt .who{font-size:10.5px; letter-spacing:1px; text-transform:uppercase; color:#AEC0DC; font-weight:700; display:block; margin-bottom:3px}
+  .kir .kt b{color:#fff}
+  .met-row{display:flex; gap:10px; flex-wrap:wrap; margin-top:14px}
+  .chip{font-size:12px; border-radius:999px; padding:5px 13px; font-weight:600}
+  .chip.b{background:#E8EFFB; color:var(--blue)} .chip.g{background:var(--pos-soft); color:var(--pos)} .chip.o{background:var(--accent-soft); color:#9A4A12} .chip.r{background:var(--warn-soft); color:var(--warn)}
+  .sech{font-family:var(--display); font-size:13px; font-weight:600; color:var(--ink); text-transform:uppercase; letter-spacing:.6px; margin:18px 0 9px}
+  .mock-wrap{margin-top:14px}
+  .metric{display:flex; flex-wrap:wrap; align-items:center; gap:8px 16px; background:var(--ink); color:#EAF0F8; border-radius:10px; padding:12px 16px; margin:2px 0 16px; font-size:13.5px; box-shadow:0 2px 10px rgba(20,35,60,.16)}
+  .metric .ml{font-size:10px; letter-spacing:1.2px; text-transform:uppercase; color:#fff; background:var(--accent); font-weight:700; padding:4px 11px; border-radius:7px; flex:0 0 auto}
+  .metric .now{color:#fff; font-weight:700; font-size:15px; background:rgba(226,98,14,.18); padding:2px 9px; border-radius:6px}
+  .metric .dg{color:#AEC0DC; font-size:12.5px}
+  .split{display:grid; grid-template-columns:minmax(440px,auto) 1fr; gap:22px; align-items:start; margin-top:8px}
+  .s-side{display:flex; flex-direction:column; gap:12px}
+  @media(max-width:1180px){.split{grid-template-columns:1fr}}
+  /* ===== mockup primitives (reused from deck) ===== */
+  .screen{background:#fff; border:1px solid #D7DEE7; border-radius:11px; padding:16px; max-width:330px}
+  .ftitle{font-family:var(--display); font-weight:600; text-align:center; font-size:14px; color:var(--ink)}
+  .fsub{text-align:center; font-size:10px; color:var(--muted); margin:4px 0 13px; line-height:1.3}
+  .field{background:var(--panel); border-radius:6px; padding:8px 11px; font-size:12px; margin-bottom:8px; color:var(--ink)}
+  .cta{background:var(--accent); color:#fff; border-radius:6px; padding:9px; text-align:center; font-weight:700; font-size:12.5px}
+  .warnx{color:var(--warn)}
+  .scr-row{display:flex; align-items:center; padding:7px 5px; border-bottom:1px solid #EEF1F5; font-size:11.5px}
+  .blur{filter:blur(5px)}
+  .badge{font-size:8px; font-weight:700; letter-spacing:.5px; border-radius:4px; padding:1px 6px}
+  table{border-collapse:collapse; width:100%}
+  @media(max-width:1080px){body{overflow:auto}.wrap{grid-template-columns:1fr; overflow:visible}.funnel,.detail{overflow:visible}}
+  .funnel::-webkit-scrollbar,.detail::-webkit-scrollbar{width:8px}
+  .funnel::-webkit-scrollbar-thumb,.detail::-webkit-scrollbar-thumb{background:#c7d0dd;border-radius:8px}
+  /* ---- overview ---- */
+  .ov-funnel{max-width:780px;margin:4px 0 12px}
+  .ov-frow{display:flex;align-items:center;gap:12px;margin:0}
+  .ov-flabel{flex:0 0 140px;font-size:11px;font-weight:700;color:var(--ink);text-align:right;text-transform:uppercase;letter-spacing:.3px}
+  .ov-barwrap{flex:1;background:var(--panel);border-radius:6px;height:30px;overflow:hidden}
+  .ov-bar{height:100%;border-radius:6px}
+  .ov-val{flex:0 0 172px;font-size:12px;color:var(--slate)}
+  .ov-val b{font-family:var(--display);font-size:15px;color:var(--ink)}
+  .ov-conv{margin:5px 0 5px 152px;font-size:11.5px;color:var(--muted)}
+  .ov-conv.leak{color:var(--warn);font-weight:700}
+  .ov-phases{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px}
+  .ov-phase{background:var(--card);border:1px solid var(--hair);border-radius:12px;padding:11px 12px;flex:1;min-width:182px}
+  .ov-phname{font-family:var(--display);font-size:11.5px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+  .ov-node{display:flex;align-items:center;gap:8px;width:100%;text-align:left;background:var(--panel);border:1px solid var(--hair);border-radius:8px;padding:7px 9px;margin-bottom:6px;cursor:pointer;font-family:var(--body);transition:.12s}
+  .ov-node:last-child{margin-bottom:0}
+  .ov-node:hover{border-color:var(--accent);background:#fff}
+  .ov-node .n{font-family:var(--display);font-weight:600;color:var(--accent);font-size:11.5px;flex:0 0 auto}
+  .ov-node .t{flex:1;font-size:12px;color:var(--ink)}
+  .ov-node .d{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
+  .d-g{background:var(--pos)} .d-r{background:var(--warn)} .d-y{background:#E0A92E}
+  .vstep{flex:1;min-width:185px;background:var(--panel);border:1px solid var(--hair);border-radius:11px;padding:15px;cursor:pointer;text-align:left;font-family:var(--body);transition:.12s}
+  .vstep:hover{border-color:var(--accent);background:#fff;box-shadow:0 4px 12px rgba(226,98,14,.13);transform:translateY(-2px)}
+  .vstep .go{font-size:11px;color:var(--accent);font-weight:700;margin-top:9px}
+  /* ---- tasks ---- */
+  .tk-cols{display:flex;gap:26px;flex-wrap:wrap;align-items:flex-start;margin-top:10px}
+  .tk-col{flex:1;min-width:300px}
+  .tk-h{font-family:var(--display);font-size:13px;font-weight:600;color:var(--ink);text-transform:uppercase;letter-spacing:.4px;margin:18px 0 9px;padding-bottom:5px;border-bottom:1px solid var(--hair)}
+  .tk-h:first-child{margin-top:0}
+  .tk{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;color:var(--slate);margin-bottom:8px;line-height:1.4}
+  .tk .p{flex:0 0 auto;font-size:8.5px;font-weight:700;border-radius:5px;padding:2px 7px;text-transform:uppercase;letter-spacing:.3px;margin-top:1px}
+  .p-h{background:var(--warn-soft);color:var(--warn)} .p-m{background:#FBEFD8;color:#9A6A12} .p-l{background:var(--panel);color:var(--muted)}
+  .tk b{color:var(--ink)} .tk .st{color:var(--muted);font-size:11px}
+  .ov-legend{display:flex;gap:18px;flex-wrap:wrap;font-size:11.5px;color:var(--slate);margin-top:11px}
+  .ov-legend span{display:flex;align-items:center;gap:6px}
+  .ov-legend i{width:9px;height:9px;border-radius:50%;display:inline-block}
+  .fn{max-width:880px;margin:10px auto 4px}
+  .fn-band{margin:0 auto;border-radius:16px;padding:13px 20px;background:linear-gradient(135deg,#26406A,var(--ink));box-shadow:0 6px 20px rgba(20,35,60,.17);transition:.2s}
+  .fn-conv{text-align:center;font-size:11.5px;color:var(--muted);margin:8px 0;display:flex;align-items:center;justify-content:center;gap:7px}
+  .fn-conv b{color:var(--slate)}
+  .fn-conv .ar{font-family:var(--display);opacity:.65;font-size:13px}
+  .fn-conv.leak{color:var(--warn);font-size:12.5px;font-weight:600}
+  .fn-conv.leak b{color:var(--warn)}
+  .fn-head{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+  .fn-name{font-family:var(--display);font-size:12.5px;font-weight:600;color:#fff;text-transform:uppercase;letter-spacing:.6px}
+  .fn-num{margin-left:auto;font-size:11.5px;color:#fff;background:rgba(255,255,255,.16);padding:3px 11px;border-radius:7px;font-weight:700;white-space:nowrap}
+  .fn-stages{display:flex;gap:8px;flex-wrap:wrap}
+  .fn-chip{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.93);border-radius:8px;padding:6px 11px;cursor:pointer;font-family:var(--body);font-size:12px;color:var(--ink);border:none;transition:.12s}
+  .fn-chip:hover{background:#fff;box-shadow:0 3px 10px rgba(0,0,0,.22);transform:translateY(-1px)}
+  .fn-chip .n{font-family:var(--display);font-weight:600;color:var(--accent);font-size:11.5px}
+  .fn-chip .d{width:8px;height:8px;border-radius:50%}
+  /* ---- storyboard (путь) ---- */
+  .sb{display:flex;flex-wrap:wrap;gap:6px 4px;align-items:flex-start;margin-top:10px;max-width:1000px}
+  .sb-step{display:flex;align-items:flex-start;gap:4px}
+  .sb-card{width:146px;cursor:pointer;border:none;background:none;padding:0;font-family:var(--body);text-align:left}
+  .sb-screen{height:176px;background:#fff;border:1px solid #D7DEE7;border-radius:11px;overflow:hidden;box-shadow:0 3px 12px rgba(20,35,60,.10);transition:.12s}
+  .sb-card:hover .sb-screen{border-color:var(--accent);box-shadow:0 6px 18px rgba(226,98,14,.18);transform:translateY(-2px)}
+  .sb-top{height:19px;background:var(--ink);display:flex;align-items:center;padding:0 8px;gap:4px}
+  .sb-top b{color:#fff;font-family:var(--display);font-size:9.5px}
+  .sb-top i{width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,.4);display:inline-block}
+  .sb-body{padding:9px 10px}
+  .sb-cap{font-size:10px;color:var(--slate);line-height:1.35;margin-top:7px}
+  .sb-cap b{color:var(--ink)}
+  .sb-arrow{color:var(--accent);font-family:var(--display);font-size:16px;flex:0 0 auto;align-self:flex-start;margin-top:74px}
+  /* ---- path carousel ---- */
+  .ps-wrap{display:flex;align-items:center;gap:16px;margin-top:14px}
+  .ps-arrow{flex:0 0 auto;width:46px;height:46px;border-radius:50%;border:1px solid var(--hair);background:#fff;color:var(--ink);font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.12s;box-shadow:0 3px 10px rgba(20,35,60,.10)}
+  .ps-arrow:hover{border-color:var(--accent);color:var(--accent);box-shadow:0 5px 14px rgba(226,98,14,.2)}
+  .ps-stage{flex:1;min-width:0}
+  .ps-slide{display:none}
+  .ps-slide.show{display:flex;gap:32px;align-items:center;animation:fade .25s ease}
+  .ps-screen{flex:0 0 auto;width:328px}
+  .ps-narr{flex:1;min-width:230px}
+  .ps-step{font-family:var(--display);font-size:12px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px}
+  .ps-title{font-family:var(--display);font-size:25px;font-weight:600;color:var(--ink);margin-bottom:16px;line-height:1.1}
+  .ps-row{margin-bottom:13px;padding-left:13px;border-left:2px solid var(--hair)}
+  .ps-row.act{border-color:var(--blue)} .ps-row.think{border-color:var(--muted)} .ps-row.steer{border-color:var(--accent)}
+  .ps-k{font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-bottom:3px}
+  .ps-row.act .ps-k{color:var(--blue)} .ps-row.think .ps-k{color:var(--slate)} .ps-row.steer .ps-k{color:var(--accent)}
+  .ps-v{font-size:13.5px;line-height:1.5;color:var(--slate)}
+  .ps-v b{color:var(--ink)}
+  .ps-row.think .ps-v{font-style:italic;color:var(--ink)}
+  .ps-open{margin-top:4px;background:none;border:none;color:var(--accent);font-weight:700;font-size:12.5px;cursor:pointer;font-family:var(--body);padding:0}
+  .ps-dots{display:flex;gap:7px;justify-content:center;margin-top:18px;align-items:center;flex-wrap:wrap}
+  .ps-dot{width:9px;height:9px;border-radius:50%;background:var(--hair);cursor:pointer;border:none;transition:.12s;padding:0}
+  .ps-dot.on{background:var(--accent);transform:scale(1.3)}
+  .ps-count{font-size:12px;color:var(--muted);margin-left:10px;font-weight:600}
+  @media(max-width:780px){.ps-slide.show{flex-direction:column}.ps-screen{width:100%;max-width:328px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">CargoTech <span>MARSHALL</span></div>
+  <div class="sub">Путь перевозчика · рабочая карта команды: что работает · что сломано · что в планах</div>
+  <div class="spine">воронка <span style="font-size:10px;opacity:.75">(оценка /admin/metrics · сверить)</span> &nbsp; <b>2455</b><span class="ar">→</span><b>363</b><span style="font-size:11px">14.8%</span><span class="ar">→</span><b>12</b><span style="font-size:11px">3.3%</span></div>
+</header>
+
+<div class="wrap">
+  <!-- ============ LEFT: FUNNEL ============ -->
+  <aside class="funnel">
+    <h2>Обзор и этапы — нажмите блок</h2>
+
+    <button class="stage active" data-k="overview" style="background:var(--ink);border-color:var(--ink)">
+      <div class="row1"><span class="num">◆</span><span class="ttl" style="color:#fff">Воронка · обзор</span></div>
+      <div class="one" style="color:#AEC0DC">Полная воронка — все 15 этапов</div>
+    </button>
+
+    <button class="stage" data-k="path" style="background:var(--ink2);border-color:var(--accent)">
+      <div class="row1"><span class="num">🎬</span><span class="ttl" style="color:#fff">Путь</span></div>
+      <div class="one" style="color:#AEC0DC">Экранный проход: что жмёт, что ждёт</div>
+    </button>
+
+    <button class="stage" data-k="reg">
+      <div class="row1"><span class="num">01</span><span class="ttl">Регистрация</span><span class="met">2455</span></div>
+      <div class="one">QR / ссылка → форма. Сейчас 7 полей, ИНН первым.</div>
+      <div class="hint">💬 <b>Кирилл:</b> «долгая регистрация, он чаще в машине едет»</div>
+    </button>
+
+    <button class="stage" data-k="onb">
+      <div class="row1"><span class="num">02</span><span class="ttl">Онбординг: 3 вопроса</span></div>
+      <div class="one">Не лента всех грузов, а 3 вопроса → подборка под него.</div>
+      <div class="hint">💬 <b>Кирилл:</b> «теряем когда подбираем — если нет, сразу неинтересно»</div>
+    </button>
+
+    <button class="stage" data-k="napr">
+      <div class="row1"><span class="num">03</span><span class="ttl">Мои направления</span></div>
+      <div class="one">Только подходящее. Цены заблюрены, одна — тизер.</div>
+      <div class="hint">💬 <b>Кирилл:</b> «просто „новый груз" = спам, выключат»</div>
+    </button>
+
+    <button class="stage" data-k="card">
+      <div class="row1"><span class="num">04</span><span class="ttl">Карточка груза</span></div>
+      <div class="one">Открыл = подобрали верно. Цена и условия заблюрены.</div>
+      <div class="hint">💬 <b>Кирилл:</b> ⚠ «комиссия 5% считается неверно»</div>
+    </button>
+
+    <button class="stage" data-k="back">
+      <div class="row1"><span class="num">05</span><span class="ttl">Возврат при отвале</span></div>
+      <div class="one">Авто-подборка в канал → логист + касдев.</div>
+      <div class="hint">💬 <b>Кирилл:</b> «70/30 — лучше звоните сами»</div>
+    </button>
+
+    <button class="stage" data-k="bridge">
+      <div class="row1"><span class="num">06</span><span class="ttl">Бридж к проверке</span></div>
+      <div class="one">Попап «забери этот груз — осталась проверка».</div>
+      <div class="hint">привязка к грузу за 52 250 ₽, не «верифицируй аккаунт»</div>
+    </button>
+
+    <button class="stage" data-k="split">
+      <div class="row1"><span class="num" style="font-size:9px">обзор</span><span class="ttl">Верификация · обзор фазы</span><span class="met">363</span></div>
+      <div class="one">Не шаг, а карта: 3 шага — бридж (6) · форма (8) · ожидание (9).</div>
+      <div class="hint">💬 <b>Кирилл:</b> «настоящей СБ нет, смотрим ИНН на АТИ»</div>
+    </button>
+
+    <button class="stage" data-k="form">
+      <div class="row1"><span class="num">08</span><span class="ttl">Заполнение формы</span></div>
+      <div class="one">≈14 полей → 2. Паспорт/руководитель — убрать.</div>
+      <div class="hint">💬 <b>Кирилл:</b> «руководитель для верификации не нужен»</div>
+    </button>
+
+    <button class="stage" data-k="wait">
+      <div class="row1"><span class="num">09</span><span class="ttl">Ожидание проверки</span></div>
+      <div class="one">Авто-проверка за секунды → чистых пускаем сразу.</div>
+      <div class="hint">💬 <b>Кирилл:</b> «проверка быстрая, но когда логист её увидел»</div>
+    </button>
+
+    <button class="stage" data-k="torg">
+      <div class="row1"><span class="num">10</span><span class="ttl">Хочет в торг</span></div>
+      <div class="one">Цена раскрылась (момент истины) → оффер подошёл → жмёт «В торг».</div>
+      <div class="hint">разрез: <b>продукт vs ликвидность</b> — ответ на «почему слабо откликаются»</div>
+    </button>
+
+    <button class="stage" data-k="addtc">
+      <div class="row1"><span class="num">11</span><span class="ttl">Заводит ТС и водителя</span><span class="met">первичка</span></div>
+      <div class="one">Без машины участвовать нельзя — заводит прямо в модалке. Скан → автозаполнение.</div>
+      <div class="hint">💬 <b>Кирилл:</b> «добавляют под конкретный рейс — это норм; OCR-скан быстрее»</div>
+    </button>
+
+    <button class="stage" data-k="apply">
+      <div class="row1"><span class="num">12</span><span class="ttl">Подаёт заявку в торг</span><span class="met">12 · 3.3%</span></div>
+      <div class="one">Выбирает ТС+водителя, вариант оплаты, согласие со штрафом → «Участвовать».</div>
+      <div class="hint">💬 <b>Кирилл:</b> ⚠ «не может выбрать вариант оплаты, комиссия 5% неверна»</div>
+    </button>
+
+    <button class="stage" data-k="bidding">
+      <div class="row1"><span class="num">13</span><span class="ttl">Торг и ставка</span><span class="met">телефон → платформа</span></div>
+      <div class="one">Цена на аукционе падает → менеджер пишет в ЛК → перевозчик отвечает кнопкой.</div>
+      <div class="hint">сейчас 100% по телефону — единственный этап, не проходимый на платформе</div>
+    </button>
+
+    <button class="stage" data-k="won">
+      <div class="row1"><span class="num">14</span><span class="ttl">Выигрыш → проверка СБ</span></div>
+      <div class="one">«Поздравляем, заявка ваша» → СБ проверяет ТС и водителя → одобрено / замена.</div>
+      <div class="hint">при провале СБ сейчас звонок «срочно замени, иначе штраф»</div>
+    </button>
+
+    <button class="stage" data-k="sign">
+      <div class="row1"><span class="num">15</span><span class="ttl">Договор и подписание</span><span class="met">🎉 закрыто</span></div>
+      <div class="one">Договор с итоговой ставкой → обе подписи на платформе → рейс уехал.</div>
+      <div class="hint">⚠ инверсия: сейчас перевозчик шлёт первым; подпись/печать — сложно</div>
+    </button>
+
+    <button class="stage" data-k="tasks" style="background:var(--accent-soft);border-color:var(--accent)">
+      <div class="row1"><span class="num">✓</span><span class="ttl" style="color:#9A4A12">Задачи</span></div>
+      <div class="one" style="color:#9A4A12">Баги · фичи · продукт — с приоритетом</div>
+    </button>
+  </aside>
+
+  <!-- ============ RIGHT: DETAIL ============ -->
+  <main class="detail">
+
+    <!-- 00 OVERVIEW -->
+    <section class="pane show" data-k="overview">
+      <div class="kick"><b>Обзор</b> · путь перевозчика целиком</div>
+      <h1>Воронка перевозчика — все 15 этапов</h1>
+      <div class="lead">Полная воронка: 15 этапов в 5 фазах, сужается к закрытой сделке. Цифры — где они есть; затык подсвечен; цвет точки = состояние этапа. Нажмите любой этап — откроются детали. <b style="color:var(--ink)">Экранный «путь перевозчика»</b> (по скринам — куда идёт, на что жмёт, что ждёт) добавлю отдельной визуализацией.</div>
+
+      <div class="sech">Воронка — все 15 этапов <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(где есть цифры — отмечены; оценка, сверить)</span></div>
+      <div class="fn">
+        <div class="fn-band" style="width:100%">
+          <div class="fn-head"><span class="fn-name">Вход</span><span class="fn-num">2 455 регистраций</span></div>
+          <div class="fn-stages">
+            <button class="fn-chip" onclick="select('reg')"><span class="n">01</span> Регистрация <span class="d d-g"></span></button>
+            <button class="fn-chip" onclick="select('onb')"><span class="n">02</span> Онбординг: 3 вопроса <span class="d d-y"></span></button>
+          </div>
+        </div>
+        <div class="fn-conv"><span class="ar">▼</span> подбор груза под профиль</div>
+        <div class="fn-band" style="width:86%">
+          <div class="fn-head"><span class="fn-name">Подбор груза</span></div>
+          <div class="fn-stages">
+            <button class="fn-chip" onclick="select('napr')"><span class="n">03</span> Мои направления <span class="d d-y"></span></button>
+            <button class="fn-chip" onclick="select('card')"><span class="n">04</span> Карточка груза <span class="d d-r"></span></button>
+            <button class="fn-chip" onclick="select('back')"><span class="n">05</span> Возврат при отвале <span class="d d-y"></span></button>
+            <button class="fn-chip" onclick="select('bridge')"><span class="n">06</span> Бридж к проверке <span class="d d-y"></span></button>
+          </div>
+        </div>
+        <div class="fn-conv"><span class="ar">▼</span> верифицируется <b>14.8%</b> · 363 из 2 455</div>
+        <div class="fn-band" style="width:72%">
+          <div class="fn-head"><span class="fn-name">Верификация</span><span class="fn-num">363 · 14.8%</span></div>
+          <div class="fn-stages">
+            <button class="fn-chip" onclick="select('split')" style="background:rgba(255,255,255,.75)"><span class="n" style="font-size:9px">обзор</span> Верификация — обзор фазы</button>
+            <button class="fn-chip" onclick="select('form')"><span class="n">08</span> Заполнение формы <span class="d d-g"></span></button>
+            <button class="fn-chip" onclick="select('wait')"><span class="n">09</span> Ожидание проверки <span class="d d-y"></span></button>
+          </div>
+        </div>
+        <div class="fn-conv leak"><span class="ar">▼</span> берут в торг <b>3.3%</b> · 🔴 главный затык (−96.7%)</div>
+        <div class="fn-band" style="width:58%;box-shadow:0 0 0 1.5px var(--warn) inset, 0 6px 22px rgba(190,58,43,.22)">
+          <div class="fn-head"><span class="fn-name">Торг и сделка</span><span class="fn-num" style="background:var(--warn)">12 · 3.3% · 🔴 затык</span></div>
+          <div class="fn-stages">
+            <button class="fn-chip" onclick="select('torg')"><span class="n">10</span> Хочет в торг <span class="d d-g"></span></button>
+            <button class="fn-chip" onclick="select('addtc')"><span class="n">11</span> Заводит ТС/водителя <span class="d d-g"></span></button>
+            <button class="fn-chip" onclick="select('apply')"><span class="n">12</span> Подаёт заявку <span class="d d-r"></span></button>
+            <button class="fn-chip" onclick="select('bidding')"><span class="n">13</span> Торг и ставка <span class="d d-r"></span></button>
+          </div>
+        </div>
+        <div class="fn-conv"><span class="ar">▼</span> дальше не измеряется (подписание в УЛ)</div>
+        <div class="fn-band" style="width:44%">
+          <div class="fn-head"><span class="fn-name">Закрытие</span><span class="fn-num" style="opacity:.55">n≈12</span></div>
+          <div class="fn-stages">
+            <button class="fn-chip" onclick="select('won')"><span class="n">14</span> Выигрыш · СБ <span class="d d-y"></span></button>
+            <button class="fn-chip" onclick="select('sign')"><span class="n">15</span> Договор · подпись <span class="d d-r"></span></button>
+          </div>
+        </div>
+      </div>
+      <div class="ov-legend"><span><i class="d-g"></i> работает сегодня</span><span><i class="d-r"></i> сломано на платформе</span><span><i class="d-y"></i> в планах / гипотеза</span></div>
+      <div style="margin-top:12px;background:var(--warn-soft);border-left:3px solid var(--warn);border-radius:0 8px 8px 0;padding:10px 14px;font-size:12.5px;color:var(--warn);max-width:860px"><b>🔴 Главный затык: верифицирован → взял в торг (−96.7%).</b> Корень вероятно — <b>ликвидность</b> (есть ли груз под его ТС и направление), не UX.</div>
+      <div style="margin-top:14px;font-size:11.5px;color:var(--muted);max-width:860px;line-height:1.5">Рамка честности: рабочая карта команды — диагностика + предложения (этапы 2–4 стратегии). Шаг 1 (почему слабо откликаются — 15 интервью перевозчиков) ещё не закрыт; путь построен на голосе логиста + гипотезах.</div>
+      <button onclick="select('path')" style="margin-top:16px;border:1px dashed var(--accent);border-radius:11px;padding:13px 16px;background:var(--accent-soft);font-size:12.5px;color:#7a4a25;cursor:pointer;font-family:var(--body);text-align:left;width:100%;max-width:860px"><b style="color:#9A4A12">🎬 Путь перевозчика →</b> экранный проход по скринам: куда идёт · на что жмёт · что ждёт. Открыть раскадровку.</button>
+    </section>
+
+    <!-- PATH · storyboard -->
+    <section class="pane" data-k="path">
+      <div class="kick"><b>Путь перевозчика</b> · экранный проход от лица водителя</div>
+      <h1>Путь по экранам — что он делает и о чём думает</h1>
+      <div class="lead">Большие экраны, переключайте стрелками ‹ › (или ← →). На каждом шаге — что перевозчик делает, что думает в этот момент, и на какую мысль его наводит платформа. Кнопка снизу открывает детальный этап.</div>
+      <div class="ps-wrap">
+        <button class="ps-arrow" onclick="psGo(-1)" aria-label="назад">‹</button>
+        <div class="ps-stage">
+
+          <div class="ps-slide show"><div class="ps-screen"><div style="background:#fff;border:1px solid #D7DEE7;border-radius:18px;overflow:hidden;box-shadow:0 14px 36px rgba(20,35,60,.16)"><div style="background:var(--ink);color:#fff;padding:9px 14px;font-family:var(--display);font-weight:600;font-size:12px;display:flex;align-items:center;gap:7px"><span style="width:18px;height:18px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:10px">M</span> CargoTech MARSHALL</div><div style="padding:15px 16px"><div style="font-family:var(--display);font-weight:600;font-size:16px;color:var(--ink);line-height:1.15;margin-bottom:9px">Возите выгоднее.<br>Деньги — быстрее.</div><div style="font-size:10.5px;color:var(--slate);margin-bottom:4px"><span style="color:var(--pos)">●</span> Аванс после загрузки <span style="color:var(--muted);font-size:9px">(roadmap)</span></div><div style="font-size:10.5px;color:var(--slate);margin-bottom:4px"><span style="color:var(--blue)">●</span> Подборки под ваше ТС — MAX/TG</div><div style="font-size:10.5px;color:var(--slate);margin-bottom:11px"><span style="color:#E0A92E">●</span> Честная ставка — без скрытой комиссии</div><div style="font-size:9px;color:var(--muted);margin-bottom:4px">Куда возите? Посмотрите, что есть</div><div style="display:flex;gap:5px;margin-bottom:6px;align-items:center"><span class="field" style="flex:1;margin:0;font-size:10.5px">Москва</span><span style="color:var(--accent)">→</span><span class="field" style="flex:1;margin:0;font-size:10.5px">Казань</span></div><div style="background:var(--pos-soft);border-radius:6px;padding:7px 9px;font-size:10px;color:#1F5C3A;margin-bottom:12px"><b>47 грузов</b> · 80–95 ₽/км · можно аванс</div><div style="font-size:9px;color:var(--muted);margin-bottom:3px">Компания *</div><div style="border:1.5px solid var(--accent);border-radius:6px 6px 0 0;padding:8px 10px;font-size:11px;color:var(--ink)">Ромашка<span style="color:var(--accent)">|</span></div><div style="border:1px solid var(--hair);border-top:none;border-radius:0 0 7px 7px;box-shadow:0 6px 14px rgba(20,35,60,.1);margin-bottom:9px"><div style="padding:6px 10px;background:var(--accent-soft);font-size:9.5px"><b style="color:var(--ink)">ООО «Ромашка»</b> · Москва <span style="color:var(--muted);font-size:8.5px">ИНН 7701234567</span></div></div><div class="field" style="font-size:11px">Имя · Телефон</div><div class="field" style="font-size:11px">Email · Пароль</div><div class="cta">Показать мои грузы →</div></div></div></div><div class="ps-narr"><div class="ps-step">Шаг 1 из 10 · Вход</div><div class="ps-title">Регистрируется</div><div class="ps-row act"><div class="ps-k">Что делаю</div><div class="ps-v">Захожу по ссылке от логиста, ввожу компанию и телефон.</div></div><div class="ps-row think"><div class="ps-k">Что думаю</div><div class="ps-v">«Опять регистрация… ну ладно. Я за рулём — лишь бы быстро. Посмотрю, есть ли тут грузы под меня.»</div></div><div class="ps-row steer"><div class="ps-k">Куда ведём</div><div class="ps-v">Показываем ценность и грузы <b>до</b> формы → регистрируется, чтобы увидеть СВОИ грузы, а не «ещё одну платформу».</div></div><button class="ps-open" onclick="select('reg')">Открыть детальный этап →</button></div></div>
+
+          <div class="ps-slide"><div class="ps-screen"><div style="background:#fff;border:1px solid #D7DEE7;border-radius:18px;overflow:hidden;box-shadow:0 14px 36px rgba(20,35,60,.16)"><div style="background:var(--ink);color:#fff;padding:9px 14px;font-family:var(--display);font-weight:600;font-size:12px;display:flex;align-items:center;gap:7px"><span style="width:18px;height:18px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:10px">M</span> CargoTech MARSHALL</div><div style="padding:15px 16px"><div style="font-family:var(--display);font-weight:600;font-size:14px;color:var(--ink);margin-bottom:12px">3 вопроса — подберём под вас</div><div style="font-size:11px;font-weight:700;color:var(--ink);margin-bottom:5px"><span style="color:var(--accent)">1</span> Направления</div><div style="margin-bottom:10px"><span style="background:var(--panel);border-radius:6px;padding:4px 9px;font-size:10px;color:var(--ink)">Москва → Казань ✕</span></div><div style="font-size:11px;font-weight:700;color:var(--ink);margin-bottom:5px"><span style="color:var(--blue)">2</span> Ваши ТС</div><div style="margin-bottom:10px"><span style="background:var(--panel);border-radius:6px;padding:4px 9px;font-size:10px;color:var(--ink)">Тент · 20 т ✕</span></div><div style="font-size:11px;font-weight:700;color:var(--ink);margin-bottom:5px">3 Клиенты</div><div style="margin-bottom:13px"><span style="background:var(--pos-soft);color:#1F5C3A;border-radius:6px;padding:4px 9px;font-size:10px">✓ работаю со всеми</span></div><div class="cta">Показать грузы →</div></div></div></div><div class="ps-narr"><div class="ps-step">Шаг 2 из 10 · Вход</div><div class="ps-title">Отвечает на 3 вопроса</div><div class="ps-row act"><div class="ps-k">Что делаю</div><div class="ps-v">Отвечаю: куда езжу, какие у меня машины, с кем не работаю.</div></div><div class="ps-row think"><div class="ps-k">Что думаю</div><div class="ps-v">«О, сразу спросили мои направления. Может, правда подберут под меня, а не свалят всё подряд.»</div></div><div class="ps-row steer"><div class="ps-k">Куда ведём</div><div class="ps-v">Собираем профиль на берегу → персональная подборка с первой минуты, без звонка логиста.</div></div><button class="ps-open" onclick="select('onb')">Открыть детальный этап →</button></div></div>
+
+          <div class="ps-slide"><div class="ps-screen"><div style="background:#fff;border:1px solid #D7DEE7;border-radius:18px;overflow:hidden;box-shadow:0 14px 36px rgba(20,35,60,.16)"><div style="background:var(--ink);color:#fff;padding:9px 14px;font-family:var(--display);font-weight:600;font-size:12px;display:flex;align-items:center;gap:7px"><span style="width:18px;height:18px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:10px">M</span> CargoTech MARSHALL</div><div style="padding:15px 16px"><div style="display:flex;gap:11px;font-size:10px;border-bottom:1px solid #ECEFF3;padding-bottom:7px;margin-bottom:9px"><span style="color:var(--muted)">Поиск</span><span style="color:var(--accent);font-weight:700">Мои направления</span><span style="color:var(--muted)">В работе</span></div><div style="font-size:10px;color:var(--muted);margin-bottom:8px">47 по вашим направлениям</div><div class="scr-row" style="background:#FFF7EC;border-left:3px solid var(--accent);padding-left:7px"><div style="flex:1.4"><b style="color:var(--ink);font-size:11px">Москва → Казань</b></div><div style="flex:1;text-align:right"><b style="color:var(--ink)">13 870 ₽</b><div style="font-size:8px;color:var(--pos)">+32% к рынку</div></div></div><div class="scr-row"><div style="flex:1.4"><b style="color:var(--ink);font-size:11px">Казань → Москва</b></div><div style="flex:1;text-align:right"><b class="blur" style="color:var(--ink)">14 320 ₽</b></div></div><div class="scr-row" style="border-bottom:none"><div style="flex:1.4"><b style="color:var(--ink);font-size:11px">Москва → Казань</b></div><div style="flex:1;text-align:right"><b class="blur" style="color:var(--ink)">13 540 ₽</b></div></div></div></div></div><div class="ps-narr"><div class="ps-step">Шаг 3 из 10 · Подбор</div><div class="ps-title">Видит подборку</div><div class="ps-row act"><div class="ps-k">Что делаю</div><div class="ps-v">Смотрю список — мои маршруты, мой тент. Цены закрыты.</div></div><div class="ps-row think"><div class="ps-k">Что думаю</div><div class="ps-v">«Это под меня… но сколько платят-то? Одна цена открыта — о, +32% к рынку. Любопытно.»</div></div><div class="ps-row steer"><div class="ps-k">Куда ведём</div><div class="ps-v">Показываем релевантность (это для тебя) + один тизер цены → появляется желание узнать остальные ставки.</div></div><button class="ps-open" onclick="select('napr')">Открыть детальный этап →</button></div></div>
+
+          <div class="ps-slide"><div class="ps-screen"><div style="background:#fff;border:1px solid #D7DEE7;border-radius:18px;overflow:hidden;box-shadow:0 14px 36px rgba(20,35,60,.16)"><div style="background:var(--ink);color:#fff;padding:9px 14px;font-family:var(--display);font-weight:600;font-size:12px;display:flex;align-items:center;gap:7px"><span style="width:18px;height:18px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:10px">M</span> CargoTech MARSHALL</div><div style="padding:15px 16px"><div style="font-family:var(--display);font-weight:600;font-size:15px;color:var(--ink)">Тверь → Дзержинск</div><div style="font-size:10px;color:var(--muted);margin-bottom:11px">695 км · 15.06</div><div style="background:var(--panel);border-radius:8px;padding:11px;text-align:center;margin-bottom:8px"><div style="font-size:8px;text-transform:uppercase;color:var(--muted)">Цена ГВ</div><div class="blur" style="font-size:19px;font-weight:700;color:var(--ink)">120 000 ₽</div></div><div style="font-size:9px;text-transform:uppercase;color:var(--ink);font-weight:700;margin-bottom:4px">Условия оплаты</div><div class="blur" style="font-size:10px;color:var(--slate);margin-bottom:11px">5% · без предоплаты · 10% · 7 б.д.</div><div style="display:flex;align-items:center;gap:9px;background:var(--accent-soft);border-radius:8px;padding:9px 11px"><span style="font-size:10px;color:#9A4A12">Цена — после верификации</span><span style="flex:1"></span><span class="cta" style="padding:6px 14px">В торг</span></div></div></div></div><div class="ps-narr"><div class="ps-step">Шаг 4 из 10 · Подбор</div><div class="ps-title">Открывает груз</div><div class="ps-row act"><div class="ps-k">Что делаю</div><div class="ps-v">Открываю груз — маршрут, даты, заказчик. Цена под замком.</div></div><div class="ps-row think"><div class="ps-k">Что думаю</div><div class="ps-v">«Компания нормальная. Да дайте уже цену! Что за проверка такая?»</div></div><div class="ps-row steer"><div class="ps-k">Куда ведём</div><div class="ps-v">Интерес на пике, цена рядом → проверка ощущается как <b>последний шаг до денег</b>, а не бюрократия.</div></div><button class="ps-open" onclick="select('card')">Открыть детальный этап →</button></div></div>
+
+          <div class="ps-slide"><div class="ps-screen"><div style="background:#fff;border:1px solid #D7DEE7;border-radius:18px;overflow:hidden;box-shadow:0 14px 36px rgba(20,35,60,.16)"><div style="background:var(--ink);color:#fff;padding:9px 14px;font-family:var(--display);font-weight:600;font-size:12px;display:flex;align-items:center;gap:7px"><span style="width:18px;height:18px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:10px">M</span> CargoTech MARSHALL</div><div style="padding:15px 16px"><div style="filter:blur(1px);opacity:.45"><div style="font-family:var(--display);font-weight:600;font-size:14px;color:var(--ink)">Тверь → Дзержинск</div><div style="background:var(--panel);border-radius:8px;padding:16px;text-align:center;margin-top:8px"><div class="blur" style="font-size:18px;font-weight:700;color:var(--ink)">120 000 ₽</div></div></div><div style="margin-top:-46px;background:#fff;border:1px solid var(--hair);border-radius:12px;box-shadow:0 14px 32px rgba(0,0,0,.22);padding:15px"><div style="font-family:var(--display);font-weight:600;font-size:14px;color:var(--ink)">Этот груз почти ваш</div><div style="font-size:10px;color:var(--muted);margin:4px 0 9px">тент · 20 т</div><div style="font-size:11px;color:var(--slate);margin-bottom:12px">Чтобы узнать ставку — быстрая проверка компании. <b style="color:var(--ink)">~2 минуты.</b></div><div class="cta">Забрать груз — пройти проверку →</div><div style="text-align:center;font-size:10px;color:var(--muted);margin-top:8px">Позже</div></div></div></div></div><div class="ps-narr"><div class="ps-step">Шаг 5 из 10 · Подбор → проверка</div><div class="ps-title">Жмёт «узнать ставку»</div><div class="ps-row act"><div class="ps-k">Что делаю</div><div class="ps-v">Жму «узнать ставку» — соглашаюсь на быструю проверку.</div></div><div class="ps-row think"><div class="ps-k">Что думаю</div><div class="ps-v">«2 минуты ради этого груза? Ок, пройду.»</div></div><div class="ps-row steer"><div class="ps-k">Куда ведём</div><div class="ps-v">Привязываем проверку к <b>конкретному грузу</b> (не «верифицируй аккаунт») → проходит охотнее.</div></div><button class="ps-open" onclick="select('bridge')">Открыть детальный этап →</button></div></div>
+
+          <div class="ps-slide"><div class="ps-screen"><div style="background:#fff;border:1px solid #D7DEE7;border-radius:18px;overflow:hidden;box-shadow:0 14px 36px rgba(20,35,60,.16)"><div style="background:var(--ink);color:#fff;padding:9px 14px;font-family:var(--display);font-weight:600;font-size:12px;display:flex;align-items:center;gap:7px"><span style="width:18px;height:18px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:10px">M</span> CargoTech MARSHALL</div><div style="padding:15px 16px;text-align:center"><div style="font-size:34px;margin-top:6px">⏱</div><div style="font-family:var(--display);font-weight:600;font-size:15px;color:var(--ink);margin-top:9px">Проверяем вашу компанию</div><div style="font-size:11px;color:var(--muted);margin-top:4px">в рабочие часы — до 5 минут</div><div style="background:var(--panel);border-radius:9px;padding:11px;margin-top:14px;font-size:11px;color:var(--ink);text-align:left">Пока заполните транспорт и водителей — после проверки сразу заберёте груз.<div class="cta" style="margin-top:9px;padding:7px">Заполнить транспорт →</div></div></div></div></div><div class="ps-narr"><div class="ps-step">Шаг 6 из 10 · Верификация</div><div class="ps-title">Ждёт проверку</div><div class="ps-row act"><div class="ps-k">Что делаю</div><div class="ps-v">Жду проверку. Пока — завожу машину и водителя.</div></div><div class="ps-row think"><div class="ps-k">Что думаю</div><div class="ps-v">«Лишь бы быстро. Заодно машину добавлю, чтоб сразу взять груз.»</div></div><div class="ps-row steer"><div class="ps-k">Куда ведём</div><div class="ps-v">Занимаем ожидание полезным действием → не уходит, готов к торгу к моменту вердикта.</div></div><button class="ps-open" onclick="select('wait')">Открыть детальный этап →</button></div></div>
+
+          <div class="ps-slide"><div class="ps-screen"><div style="background:#fff;border:1px solid #D7DEE7;border-radius:18px;overflow:hidden;box-shadow:0 14px 36px rgba(20,35,60,.16)"><div style="background:var(--ink);color:#fff;padding:9px 14px;font-family:var(--display);font-weight:600;font-size:12px;display:flex;align-items:center;gap:7px"><span style="width:18px;height:18px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:10px">M</span> CargoTech MARSHALL</div><div style="padding:15px 16px"><div style="font-family:var(--display);font-weight:600;font-size:15px;color:var(--ink)">Тверь → Дзержинск</div><div style="font-size:10px;color:var(--pos);margin-bottom:11px">695 км · проверка пройдена ✓</div><div style="background:var(--pos-soft);border-radius:9px;padding:13px;text-align:center;margin-bottom:9px"><div style="font-size:8px;text-transform:uppercase;color:var(--muted)">Ваша ставка</div><div style="font-size:22px;font-weight:700;color:#1F5C3A">114 000 ₽</div><div style="font-size:9px;color:#3a7a57">164 ₽/км · можно аванс</div></div><div style="font-size:10px;color:var(--slate);margin-bottom:11px">5% · без предоплаты · видно все условия</div><div class="cta" style="padding:11px">⚡ В торг</div></div></div></div><div class="ps-narr"><div class="ps-step">Шаг 7 из 10 · Момент истины</div><div class="ps-title">Видит цену → «В торг»</div><div class="ps-row act"><div class="ps-k">Что делаю</div><div class="ps-v">Проверку прошёл — вижу цену! 114 000, 164 ₽/км. Жму «В торг».</div></div><div class="ps-row think"><div class="ps-k">Что думаю</div><div class="ps-v">«О, нормально платят. Беру!»</div></div><div class="ps-row steer"><div class="ps-k">Куда ведём</div><div class="ps-v">Цена раскрывается как <b>награда</b> за проверку → клик «В торг» = первый коммитмент после реальных денег.</div></div><button class="ps-open" onclick="select('torg')">Открыть детальный этап →</button></div></div>
+
+          <div class="ps-slide"><div class="ps-screen"><div style="background:#fff;border:1px solid #D7DEE7;border-radius:18px;overflow:hidden;box-shadow:0 14px 36px rgba(20,35,60,.16)"><div style="background:var(--ink);color:#fff;padding:9px 14px;font-family:var(--display);font-weight:600;font-size:12px;display:flex;align-items:center;gap:7px"><span style="width:18px;height:18px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:10px">M</span> CargoTech MARSHALL</div><div style="padding:15px 16px"><div style="font-family:var(--display);font-weight:600;font-size:14px;color:var(--ink);margin-bottom:9px">Взять в торги</div><div style="background:var(--panel);border-radius:7px;padding:8px;text-align:center;font-size:11px;margin-bottom:10px;color:var(--ink)">ваша ставка <b>8 000 ₽</b> <span style="color:var(--muted)">(на руки)</span></div><div style="background:#D7E3F0;border-radius:11px;padding:9px"><div style="background:#fff;border-radius:5px 12px 12px 12px;padding:9px 11px;font-size:11px;color:var(--ink)">Ставка по рейсу упала до <b>8 000 ₽</b>. Торгуемся дальше?</div><div style="display:flex;gap:6px;margin-top:7px"><span style="flex:1;background:var(--pos);color:#fff;font-size:9.5px;text-align:center;padding:6px;border-radius:5px">Торгуем</span><span style="flex:1;background:#fff;color:var(--warn);font-size:9.5px;text-align:center;padding:6px;border-radius:5px">Отказаться</span></div></div></div></div></div><div class="ps-narr"><div class="ps-step">Шаг 8 из 10 · Торг</div><div class="ps-title">Торгуется</div><div class="ps-row act"><div class="ps-k">Что делаю</div><div class="ps-v">Ставлю свою цену, участвую. Логист пишет: цена упала — торгуемся?</div></div><div class="ps-row think"><div class="ps-k">Что думаю</div><div class="ps-v">«Ниже 7 500 не поеду. Если впишусь — мой рейс. Хорошо, что прямо тут отвечаю, а не жду звонка.»</div></div><div class="ps-row steer"><div class="ps-k">Куда ведём</div><div class="ps-v">Переносим торг в приложение → быстрее телефона, видно свою ставку, решение в один тап.</div></div><button class="ps-open" onclick="select('bidding')">Открыть детальный этап →</button></div></div>
+
+          <div class="ps-slide"><div class="ps-screen"><div style="background:#fff;border:1px solid #D7DEE7;border-radius:18px;overflow:hidden;box-shadow:0 14px 36px rgba(20,35,60,.16)"><div style="background:var(--ink);color:#fff;padding:9px 14px;font-family:var(--display);font-weight:600;font-size:12px;display:flex;align-items:center;gap:7px"><span style="width:18px;height:18px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:10px">M</span> CargoTech MARSHALL</div><div style="padding:15px 16px;text-align:center"><div style="font-size:36px;margin-top:4px">🎉</div><div style="font-family:var(--display);font-weight:600;font-size:16px;color:var(--pos);margin-top:9px">Вы выиграли торг!</div><div style="font-size:11px;color:var(--slate);margin-top:6px">Рейс Тверь → Дзержинск — ваш</div><div style="background:var(--panel);border-radius:9px;padding:11px;margin-top:13px;font-size:11px;color:var(--ink)">Проверяем вашу машину и водителя…<div style="color:#1F5C3A;font-weight:700;margin-top:6px">✓ Одобрено</div></div></div></div></div><div class="ps-narr"><div class="ps-step">Шаг 9 из 10 · Закрытие</div><div class="ps-title">Выиграл</div><div class="ps-row act"><div class="ps-k">Что делаю</div><div class="ps-v">Выиграл! Жду, пока проверят мою машину.</div></div><div class="ps-row think"><div class="ps-k">Что думаю</div><div class="ps-v">«Есть! Теперь бы оформить без волокиты.»</div></div><div class="ps-row steer"><div class="ps-k">Куда ведём</div><div class="ps-v">Мгновенное «поздравляем» + проверка машины → ощущение контроля и что сделка реальна.</div></div><button class="ps-open" onclick="select('won')">Открыть детальный этап →</button></div></div>
+
+          <div class="ps-slide"><div class="ps-screen"><div style="background:#fff;border:1px solid #D7DEE7;border-radius:18px;overflow:hidden;box-shadow:0 14px 36px rgba(20,35,60,.16)"><div style="background:var(--ink);color:#fff;padding:9px 14px;font-family:var(--display);font-weight:600;font-size:12px;display:flex;align-items:center;gap:7px"><span style="width:18px;height:18px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:10px">M</span> CargoTech MARSHALL</div><div style="padding:15px 16px"><div style="font-family:var(--display);font-weight:600;font-size:13px;color:var(--ink);margin-bottom:10px">Заявка на груз #20653927300</div><div style="font-size:9px;text-transform:uppercase;color:var(--ink);font-weight:700;margin-bottom:7px">Печати и подписи</div><div style="display:flex;gap:9px;margin-bottom:11px"><div style="flex:1;border:1px solid var(--hair);border-radius:8px;padding:9px;text-align:center"><div style="font-size:8px;color:var(--muted)">Подпись</div><svg width="50" height="18" viewBox="0 0 58 22" style="margin:3px 0"><path d="M3 16 C 10 4, 14 4, 18 14 S 26 22, 32 10 S 44 2, 50 14 L 56 8" fill="none" stroke="#3a4a7a" stroke-width="1.6" stroke-linecap="round"/></svg><div style="font-size:8px;color:var(--pos)">✓ сохранена</div></div><div style="flex:1;border:1px solid var(--hair);border-radius:8px;padding:9px;text-align:center"><div style="font-size:8px;color:var(--muted)">Печать</div><div style="width:30px;height:30px;border-radius:50%;border:2px solid #4a78c0;margin:3px auto;display:flex;align-items:center;justify-content:center;color:#4a78c0;font-size:6px;font-weight:700">M·T</div><div style="font-size:8px;color:var(--pos)">✓ сохранена</div></div></div><div style="font-size:10px;color:var(--muted);margin-bottom:10px">договор автозаполнен (ставка 8 000, оплата 5%)</div><div class="cta" style="margin-bottom:9px">✍ Подписать</div><div style="background:var(--pos-soft);color:#1F5C3A;font-size:11px;text-align:center;padding:8px;border-radius:7px;font-weight:700">✅ Заявка закрыта — рейс уехал</div></div></div></div><div class="ps-narr"><div class="ps-step">Шаг 10 из 10 · Закрытие</div><div class="ps-title">Подписывает</div><div class="ps-row act"><div class="ps-k">Что делаю</div><div class="ps-v">Подписываю договор — печать и подпись уже сохранены, один тап.</div></div><div class="ps-row think"><div class="ps-k">Что думаю</div><div class="ps-v">«Без возни с бумагами и почтой. Поехал зарабатывать.»</div></div><div class="ps-row steer"><div class="ps-k">Куда ведём</div><div class="ps-v">Договор автозаполнен (ставка с торга), подпись в один тап → закрываем сделку на платформе, не в почте/УЛ.</div></div><button class="ps-open" onclick="select('sign')">Открыть детальный этап →</button></div></div>
+
+        </div>
+        <button class="ps-arrow" onclick="psGo(1)" aria-label="вперёд">›</button>
+      </div>
+      <div class="ps-dots">
+        <button class="ps-dot on" onclick="psShow(0)"></button><button class="ps-dot" onclick="psShow(1)"></button><button class="ps-dot" onclick="psShow(2)"></button><button class="ps-dot" onclick="psShow(3)"></button><button class="ps-dot" onclick="psShow(4)"></button><button class="ps-dot" onclick="psShow(5)"></button><button class="ps-dot" onclick="psShow(6)"></button><button class="ps-dot" onclick="psShow(7)"></button><button class="ps-dot" onclick="psShow(8)"></button><button class="ps-dot" onclick="psShow(9)"></button><span class="ps-count" id="ps-count">1 / 10</span>
+      </div>
+      <div class="sb" style="display:none">
+        <div class="sb-step"><button class="sb-card" onclick="select('reg')"><div class="sb-screen"><div class="sb-top"><b>1</b><i></i><i></i></div><div class="sb-body"><div style="font-size:9px;font-weight:700;color:var(--ink)">CargoTech</div><div style="font-size:9.5px;font-weight:700;color:var(--ink);line-height:1.15;margin:5px 0 8px">Возите<br>выгоднее</div><div style="height:6px;background:var(--panel);border-radius:3px;margin-bottom:4px"></div><div style="height:6px;background:var(--panel);border-radius:3px;margin-bottom:9px"></div><div style="background:var(--accent);color:#fff;font-size:8px;text-align:center;padding:5px;border-radius:5px">Показать грузы →</div></div></div><div class="sb-cap"><b>Регистрируется</b> — заходит по ссылке, форма на минуту</div></button><span class="sb-arrow">→</span></div>
+
+        <div class="sb-step"><button class="sb-card" onclick="select('onb')"><div class="sb-screen"><div class="sb-top"><b>2</b><i></i><i></i></div><div class="sb-body"><div style="font-size:9px;font-weight:700;color:var(--ink);margin-bottom:9px">3 вопроса</div><div style="font-size:8px;background:var(--panel);border-radius:5px;padding:5px 7px;margin-bottom:6px;color:var(--ink)">📍 Направления</div><div style="font-size:8px;background:var(--panel);border-radius:5px;padding:5px 7px;margin-bottom:6px;color:var(--ink)">🚛 Ваши ТС</div><div style="font-size:8px;background:var(--panel);border-radius:5px;padding:5px 7px;color:var(--ink)">🏢 Клиенты</div></div></div><div class="sb-cap"><b>Отвечает на 3 вопроса</b> — направления, ТС, клиенты</div></button><span class="sb-arrow">→</span></div>
+
+        <div class="sb-step"><button class="sb-card" onclick="select('napr')"><div class="sb-screen"><div class="sb-top"><b>3</b><i></i><i></i></div><div class="sb-body"><div style="font-size:8.5px;font-weight:700;color:var(--ink);margin-bottom:7px">Мои направления</div><div style="display:flex;justify-content:space-between;font-size:7.5px;padding:4px 0;border-bottom:1px solid #EEF1F5;color:var(--ink)"><span>МСК→Казань</span><span class="blur" style="font-weight:700">13 870</span></div><div style="display:flex;justify-content:space-between;font-size:7.5px;padding:4px 0;border-bottom:1px solid #EEF1F5;color:var(--ink)"><span>Казань→МСК</span><span class="blur" style="font-weight:700">14 320</span></div><div style="display:flex;justify-content:space-between;font-size:7.5px;padding:4px 0;color:var(--ink)"><span>МСК→Казань</span><span class="blur" style="font-weight:700">13 540</span></div></div></div><div class="sb-cap"><b>Видит подборку</b> — грузы под него, цены скрыты</div></button><span class="sb-arrow">→</span></div>
+
+        <div class="sb-step"><button class="sb-card" onclick="select('card')"><div class="sb-screen"><div class="sb-top"><b>4</b><i></i><i></i></div><div class="sb-body"><div style="font-size:8px;font-weight:700;color:var(--ink);margin-bottom:7px">Тверь → Дзержинск</div><div style="background:var(--panel);border-radius:6px;padding:10px 6px;text-align:center"><div style="font-size:6.5px;color:var(--muted);text-transform:uppercase">Цена ГВ</div><div class="blur" style="font-size:15px;font-weight:700;color:var(--ink)">120 000 ₽</div></div><div style="background:var(--accent-soft);font-size:7px;color:#9A4A12;text-align:center;padding:5px;border-radius:5px;margin-top:8px">цена — после проверки</div></div></div><div class="sb-cap"><b>Открывает груз</b> — детали есть, цена под замком</div></button><span class="sb-arrow">→</span></div>
+
+        <div class="sb-step"><button class="sb-card" onclick="select('bridge')"><div class="sb-screen"><div class="sb-top"><b>5</b><i></i><i></i></div><div class="sb-body"><div style="background:var(--ink);color:#fff;border-radius:8px;padding:10px;margin-top:20px"><div style="font-size:8.5px;font-weight:700">Этот груз почти ваш</div><div style="font-size:7px;color:#AEC0DC;margin:5px 0 8px">проверка ~2 минуты</div><div style="background:var(--accent);font-size:7.5px;text-align:center;padding:5px;border-radius:5px">Узнать ставку →</div></div></div></div><div class="sb-cap"><b>Жмёт «узнать ставку»</b> — идёт на быструю проверку</div></button><span class="sb-arrow">→</span></div>
+
+        <div class="sb-step"><button class="sb-card" onclick="select('wait')"><div class="sb-screen"><div class="sb-top"><b>6</b><i></i><i></i></div><div class="sb-body" style="text-align:center"><div style="font-size:26px;margin-top:12px">⏱</div><div style="font-size:8.5px;font-weight:700;color:var(--ink);margin-top:7px">Проверяем компанию</div><div style="font-size:7.5px;color:var(--muted);margin-top:3px">до 5 минут</div><div style="font-size:7.5px;background:var(--panel);border-radius:5px;padding:5px;margin-top:9px;color:var(--ink)">Пока — заполните ТС</div></div></div><div class="sb-cap"><b>Ждёт проверку</b> — параллельно заводит ТС и водителя</div></button><span class="sb-arrow">→</span></div>
+
+        <div class="sb-step"><button class="sb-card" onclick="select('torg')"><div class="sb-screen"><div class="sb-top"><b>7</b><i></i><i></i></div><div class="sb-body"><div style="font-size:8px;font-weight:700;color:var(--ink);margin-bottom:7px">Тверь → Дзержинск</div><div style="background:var(--pos-soft);border-radius:6px;padding:9px 6px;text-align:center"><div style="font-size:6.5px;color:var(--muted);text-transform:uppercase">Ваша ставка</div><div style="font-size:14px;font-weight:700;color:#1F5C3A">114 000 ₽</div><div style="font-size:6.5px;color:#3a7a57">164 ₽/км</div></div><div style="background:var(--accent);color:#fff;font-size:8px;text-align:center;padding:5px;border-radius:5px;margin-top:8px">⚡ В торг</div></div></div><div class="sb-cap"><b>Видит цену → «В торг»</b> — момент истины, проверка пройдена</div></button><span class="sb-arrow">→</span></div>
+
+        <div class="sb-step"><button class="sb-card" onclick="select('bidding')"><div class="sb-screen"><div class="sb-top"><b>8</b><i></i><i></i></div><div class="sb-body"><div style="font-size:8.5px;font-weight:700;color:var(--ink);margin-bottom:7px">Взять в торги</div><div style="background:var(--panel);border-radius:5px;padding:6px;font-size:8px;text-align:center;margin-bottom:7px;color:var(--ink)">ставка <b>8 000 ₽</b></div><div style="background:#D7E3F0;border-radius:7px;padding:6px"><div style="background:#fff;border-radius:4px;padding:6px;font-size:7px;color:var(--ink)">Цена упала — торгуем дальше?</div></div></div></div><div class="sb-cap"><b>Торгуется</b> — ставит цену; цена падает — отвечает в боте</div></button><span class="sb-arrow">→</span></div>
+
+        <div class="sb-step"><button class="sb-card" onclick="select('won')"><div class="sb-screen"><div class="sb-top"><b>9</b><i></i><i></i></div><div class="sb-body" style="text-align:center"><div style="font-size:26px;margin-top:14px">🎉</div><div style="font-size:9px;font-weight:700;color:var(--pos);margin-top:7px">Вы выиграли торг!</div><div style="font-size:7.5px;color:var(--muted);margin-top:6px">проверяем машину →</div><div style="font-size:7.5px;color:#1F5C3A;background:var(--pos-soft);border-radius:5px;padding:5px;margin-top:7px">✓ одобрено</div></div></div><div class="sb-cap"><b>Выиграл</b> — проверяют машину → одобрено</div></button><span class="sb-arrow">→</span></div>
+
+        <div class="sb-step"><button class="sb-card" onclick="select('sign')"><div class="sb-screen"><div class="sb-top"><b>10</b><i></i><i></i></div><div class="sb-body"><div style="font-size:8.5px;font-weight:700;color:var(--ink);margin-bottom:8px">Договор-заявка</div><div style="border:1px solid var(--hair);border-radius:6px;padding:8px;text-align:center;margin-bottom:8px"><svg width="46" height="18" viewBox="0 0 58 22"><path d="M3 16 C 10 4, 14 4, 18 14 S 26 22, 32 10 S 44 2, 50 14 L 56 8" fill="none" stroke="#3a4a7a" stroke-width="1.6" stroke-linecap="round"/></svg><div style="font-size:6.5px;color:var(--pos)">✓ подпись</div></div><div style="background:var(--pos-soft);color:#1F5C3A;font-size:8px;text-align:center;padding:5px;border-radius:5px;font-weight:700">✅ Заявка закрыта</div></div></div><div class="sb-cap"><b>Подписывает</b> — договор в один тап → рейс уехал</div></button></div>
+      </div>
+      <div style="margin-top:18px;font-size:11.5px;color:var(--muted);max-width:900px;line-height:1.5">🟢 Это путь, каким мы его проектируем. Где сейчас рвётся (торг по телефону, баги оплаты, инверсия договора) — красные пометки на этапах <b style="color:var(--warn)">4 · 12 · 13 · 15</b> и в воронке-обзоре.</div>
+    </section>
+
+    <!-- 01 REG -->
+    <section class="pane" data-k="reg">
+      <div class="kick"><b>01</b> · Регистрация</div>
+      <h1>Данные компании — одно умное поле</h1>
+      <div class="lead">Перевозчик не регистрируется ради платформы — у него уже есть ATI. Усилие он приложит за деньги и за грузы под него. Поэтому вход делаем максимально лёгким, а ценность показываем сразу.</div>
+      <div class="metric"><span class="ml">Метрика этапа</span><span>Регистраций/день (чистых) → конверсия в верификацию</span><span class="now">сейчас: 2455 рег · 14.8% в вериф</span><span class="dg">гипотеза: →30%+ после авто-онбординга (не цель — диагностика)</span></div>
+      <div class="grid2">
+        <div class="box now"><div class="bk">Как сейчас</div><p>7 полей, <b>ИНН компании — первое поле</b> (вспоминает 12 цифр в машине). Подзаголовок обещает «грузы с ценами», которых после блюра уже нет.</p></div>
+        <div class="box prop"><div class="bk">Предлагаем</div><p>Одно поле <b>«Компания» с автоподсказкой</b>: вводит название → ловим ИНН. <b>7→6</b> полей, трудное стало лёгким. По ИНН потом автозаполнится верификация.</p></div>
+      </div>
+      <div class="met-row"><span class="chip o">драйверы: деньги быстрее · грузы под него · честная ставка</span><span class="chip g">технически: DaData, бесплатный тариф</span></div>
+      <div class="sech">Мокап — страница регистрации: сначала ценность, потом форма</div>
+      <div class="mock-wrap">
+        <div style="display:flex;border:1px solid #D7DEE7;border-radius:13px;overflow:hidden;width:100%;box-shadow:0 4px 16px rgba(20,35,60,.08)">
+          <div style="flex:1;background:var(--ink);color:#EAF0F8;padding:18px 19px">
+            <div style="font-family:var(--display);font-size:15px;font-weight:600">CargoTech <span style="color:var(--accent)">MARSHALL</span></div>
+            <div style="font-family:var(--display);font-weight:600;font-size:17px;margin-top:14px;line-height:1.2">Возите выгоднее.<br>Деньги — быстрее.</div>
+            <div style="margin-top:13px;font-size:11px;line-height:1.3">
+              <div style="margin-bottom:8px"><span style="color:#34D399">●</span> <b>Аванс после загрузки</b> — без ожидания 30–60 дней <span style="opacity:.7;font-size:9px">(roadmap · пилот)</span></div>
+              <div style="margin-bottom:8px"><span style="color:#60A5FA">●</span> <b>Персональные подборки</b> под ваше ТС — MAX / TG / Email</div>
+              <div><span style="color:#FBBF24">●</span> <b>Честная ставка</b> — видите, сколько платят, без скрытой комиссии</div>
+            </div>
+            <div style="margin-top:15px;padding-top:11px;border-top:1px solid #2C3C57">
+              <div style="font-size:9px;letter-spacing:.8px;text-transform:uppercase;color:#7E93B4">сейчас на платформе</div>
+              <div style="font-family:var(--display);font-size:19px;font-weight:600;margin-top:2px">16 000+ <span style="font-size:11px;font-weight:400;color:#AEC0DC">грузов в каталоге</span></div>
+              <div style="font-size:10px;color:#AEC0DC;margin-top:5px">цель — грузы Озона, Магнита, Сибура <span style="opacity:.6">(планируется, согласовать)</span></div>
+            </div>
+          </div>
+          <div style="flex:1.05;background:#fff;padding:16px 18px">
+            <div style="font-family:var(--display);font-weight:600;font-size:13px;color:var(--ink)">Куда возите? Посмотрите, что есть сейчас</div>
+            <div style="display:flex;gap:6px;margin:8px 0"><span class="field" style="flex:1;margin:0">Москва</span><span style="color:var(--accent);align-self:center">→</span><span class="field" style="flex:1;margin:0">Казань</span></div>
+            <div style="background:var(--pos-soft);border-radius:7px;padding:9px;font-size:11px;color:#1F5C3A"><b>47 грузов</b> · <b>80–95 ₽/км</b> · <b>авансирование</b> <span style="opacity:.7">(roadmap)</span></div>
+            <div style="font-family:var(--display);font-weight:600;font-size:12.5px;color:var(--ink);margin:13px 0 6px">Возите выгоднее — начните за минуту</div>
+            <div style="font-size:9.5px;color:var(--muted);margin-bottom:3px">Компания <span class="warnx">*</span></div>
+            <div style="background:#fff;border:1.5px solid var(--accent);border-radius:6px 6px 0 0;padding:7px 10px;font-size:11.5px;color:var(--ink)">Ромашка<span style="color:var(--accent)">|</span></div>
+            <div style="border:1px solid var(--hair);border-top:none;border-radius:0 0 7px 7px;box-shadow:0 6px 16px rgba(20,35,60,.1);margin-bottom:8px">
+              <div style="padding:5px 10px;background:var(--accent-soft);font-size:10px"><b style="color:var(--ink)">ООО «Ромашка»</b> · Москва <span style="color:var(--muted);font-size:9px">ИНН 7701234567</span></div>
+              <div style="padding:5px 10px;font-size:10px;border-top:1px solid var(--hair)"><b style="color:var(--ink)">ООО «Ромашка-Транс»</b> · Казань <span style="color:var(--muted);font-size:9px">ИНН 1655123456</span></div>
+            </div>
+            <div class="field"><b>Имя</b> / Фамилия</div>
+            <div class="field"><b>Телефон</b></div>
+            <div class="field"><b>Email</b> · <b>Пароль</b></div>
+            <div class="cta">Показать мои грузы →</div>
+          </div>
+        </div>
+      </div>
+      <div class="kir"><div class="av">К</div><div class="kt"><span class="who">Кирилл · логист онбординга</span>«Долгая регистрация, ему точно неудобно — он <b>в машине едет</b> чаще всего». При этом главная причина не регаться — <b>не нашёл подходящего груза</b>, а не сама форма.</div></div>
+    </section>
+
+    <!-- 02 ONB -->
+    <section class="pane" data-k="onb">
+      <div class="kick"><b>02</b> · Сразу после регистрации</div>
+      <h1>Спросить 3 вопроса — и собрать подборку</h1>
+      <div class="lead">Вместо ленты всех грузов — короткая форма. Узнаём перевозчика на берегу и сразу ведём на вкладку «Мои направления» с подходящими заявками.</div>
+      <div class="metric"><span class="ml">Метрика этапа</span><span>Отвал НА опросе: с регистрации → завершил 3 вопроса (vs бросил)</span><span class="dg">мерим не «сколько заполнили» (если обязательный — ~100%), а сколько ушли, не доделав</span></div>
+      <div class="split">
+       <div>
+        <div style="background:#fff;border:1px solid #D7DEE7;border-radius:12px;padding:18px 20px;width:520px;max-width:100%;box-shadow:0 8px 24px rgba(20,35,60,.1)">
+          <div style="font-family:var(--display);font-weight:600;font-size:15px;color:var(--ink)">Всего 3 вопроса — и подберём грузы именно под вас</div>
+          <div style="font-size:10px;color:var(--muted);margin:3px 0 12px">Это заменит звонок логиста — подборка готова с первой минуты</div>
+          <div style="font-size:11.5px;font-weight:700;color:var(--ink);margin-bottom:5px"><span style="color:var(--accent)">1</span> · Какие направления возите?</div>
+          <div style="display:flex;gap:7px;margin-bottom:11px"><span style="background:var(--panel);border-radius:7px;padding:5px 11px;font-size:11px;color:var(--ink)">Москва → Казань ✕</span><span style="border:1px dashed #B9C4D2;border-radius:7px;padding:5px 11px;font-size:11px;color:var(--muted)">+ направление</span></div>
+          <div style="font-size:11.5px;font-weight:700;color:var(--ink);margin-bottom:5px"><span style="color:var(--blue)">2</span> · Ваши ТС</div>
+          <div style="display:flex;gap:7px;margin-bottom:11px"><span style="background:var(--panel);border-radius:7px;padding:5px 11px;font-size:11px;color:var(--ink)">Тент ▾ · 20 т ✕</span><span style="border:1px dashed #B9C4D2;border-radius:7px;padding:5px 11px;font-size:11px;color:var(--muted)">+ ТС</span></div>
+          <div style="font-size:11.5px;font-weight:700;color:var(--ink);margin-bottom:5px">3 · Предпочтения по клиентам <span style="font-size:9px;color:var(--warn);border:1px solid var(--warn);border-radius:4px;padding:0 6px">обсудить</span></div>
+          <div style="display:flex;gap:7px;margin-bottom:13px"><span style="background:var(--pos-soft);border-radius:7px;padding:5px 11px;font-size:11px;color:#1F5C3A">✓ работаю со всеми</span><span style="background:var(--panel);border-radius:7px;padding:5px 11px;font-size:11px;color:var(--muted)">не работаю с: ВБ · Озон…</span></div>
+          <hr style="border:0;border-top:1px solid var(--hair);margin:0 0 12px">
+          <div style="font-size:11.5px;font-weight:700;color:var(--ink);margin-bottom:7px">Где получать уведомления с подходящими грузами?</div>
+          <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap"><span style="background:var(--pos-soft);border-radius:7px;padding:6px 11px;font-size:11px;color:#1F5C3A;font-weight:600">MAX / Telegram — активировать бота ✓</span><span style="background:var(--panel);border-radius:7px;padding:6px 11px;font-size:11px;color:var(--ink)">Email</span><span style="background:var(--panel);border-radius:7px;padding:6px 11px;font-size:11px;color:var(--ink)">SMS</span><span style="flex:1"></span><span class="cta" style="padding:7px 16px">Показать мои грузы →</span></div>
+        </div>
+       </div>
+       <div class="s-side">
+        <div class="box now"><div class="bk">Как сейчас</div><p>Попадает на ленту <b>ВСЕХ</b> грузов → большинство не подходит → уходит. Данные (направления, ТС, тоннаж) собирает <b>логист вручную</b>, потом, по телефону.</p></div>
+        <div class="box prop"><div class="bk">Предлагаем</div><p>Форма «3 вопроса»: направления · ваши ТС · клиенты + канал уведомлений (MAX/TG/Email/SMS). Подборка с 1-й минуты, без звонка логиста.</p></div>
+        <div class="kir"><div class="av">К</div><div class="kt"><span class="who">Кирилл · логист онбординга</span>«Теряем перевоза, когда начинаем подбирать груз. Если ничего нет — сразу „мне неинтересно, как будет под меня — звоните"». Q3 формулировать как <b>«с кем НЕ работаете»</b> (ВБ требует экипаж, Озон — риск простоя).</div></div>
+       </div>
+      </div>
+    </section>
+
+    <!-- 03 NAPR -->
+    <section class="pane" data-k="napr">
+      <div class="kick"><b>03</b> · Результат после формы</div>
+      <h1>Только подходящие грузы — одна цена открыта</h1>
+      <div class="lead">После формы — не лента всех грузов, а вкладка «Мои направления» под профиль. Все цены заблюрены до верификации, одну оставляем открытой как тизер — чтобы видел выгоду.</div>
+      <div class="metric"><span class="ml">Метрика этапа</span><span>Фит-rate: для скольки перевозчиков есть ≥5 грузов/день под их ТС + направление</span><span class="dg">главная диагностика: продукт vs ликвидность (низкий фит → лечим экспедиторами, не UX)</span></div>
+      <div class="sech">Мокап — вкладка «Любимые направления»</div>
+      <div class="mock-wrap">
+        <div style="background:#fff;border:1px solid #D7DEE7;border-radius:11px;overflow:hidden;width:100%;box-shadow:0 3px 14px rgba(20,35,60,.10)">
+          <div style="display:flex;gap:14px;padding:9px 14px;border-bottom:1px solid #ECEFF3;font-size:10.5px"><span style="color:var(--muted)">Поиск (16к)</span><span style="color:var(--accent);font-weight:700">Любимые направления</span><span style="color:var(--muted)">В работе</span><span style="margin-left:auto;color:var(--muted)">Найдено: 47 по вашим направлениям</span></div>
+          <div style="display:flex;gap:7px;padding:9px 14px"><span style="background:var(--pos-soft);color:#1F5C3A;border-radius:6px;padding:3px 9px;font-size:9px;font-weight:600">Тент</span><span style="background:var(--pos-soft);color:#1F5C3A;border-radius:6px;padding:3px 9px;font-size:9px;font-weight:600">20 т</span><span style="background:var(--pos-soft);color:#1F5C3A;border-radius:6px;padding:3px 9px;font-size:9px;font-weight:600">Москва ↔ Казань</span><span style="color:var(--muted);font-size:9px;align-self:center">— ваш профиль</span></div>
+          <div style="padding:0 14px 12px">
+            <div class="scr-row" style="background:#FFF7EC;border-left:3px solid var(--accent)"><div style="flex:1.5"><b style="color:var(--ink)">Москва → Казань</b><div style="font-size:9px;color:var(--muted)">13.06 08:00 → 20:00</div></div><div style="flex:1.4;font-size:10px">ООО «ИНТЕРНЕТ РЕШЕНИЯ»</div><div style="flex:.8;font-size:10px">тент · 20 т</div><div style="flex:1;text-align:right"><b style="color:var(--ink);font-size:13px">13 870 ₽</b><div style="font-size:9px;color:var(--pos)">● +32.7% выше рынка</div></div><div style="flex:.6;text-align:right"><span style="color:var(--accent);font-size:8px;font-weight:700">пример</span></div></div>
+            <div class="scr-row"><div style="flex:1.5"><b style="color:var(--ink)">Казань → Москва</b><div style="font-size:9px;color:var(--muted)">13.06 22:00 → 10:00</div></div><div style="flex:1.4;font-size:10px">ООО «ИНТЕРНЕТ РЕШЕНИЯ»</div><div style="flex:.8;font-size:10px">тент · 20 т</div><div style="flex:1;text-align:right"><b style="color:var(--ink);font-size:13px" class="blur">14 320 ₽</b><div style="font-size:9px;color:var(--muted)">после верификации</div></div><div style="flex:.6;text-align:right;font-size:9px;color:var(--pos);font-weight:600">В работу</div></div>
+            <div class="scr-row" style="border-bottom:none"><div style="flex:1.5"><b style="color:var(--ink)">Москва → Казань</b><div style="font-size:9px;color:var(--muted)">14.06 06:00 → 18:00</div></div><div style="flex:1.4;font-size:10px">ООО «ОЗОН»</div><div style="flex:.8;font-size:10px">тент · 20 т</div><div style="flex:1;text-align:right"><b style="color:var(--ink);font-size:13px" class="blur">13 540 ₽</b><div style="font-size:9px;color:var(--muted)">после верификации</div></div><div style="flex:.6;text-align:right;font-size:9px;color:var(--pos);font-weight:600">В работу</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="met-row"><span class="chip o">все цены заблюрены до верификации</span><span class="chip g">1 открыта как тизер (+32% к рынку)</span></div>
+      <div class="kir"><div class="av">К</div><div class="kt"><span class="who">Кирилл · логист онбординга</span>⚠ «Просто „у нас появился новый груз" — это спам, как Atrucks/тендеры. Зашёл раз, посмотрел — неинтересно стало, выключат и в архив». → подборка обязана быть <b>реально персональной</b>, иначе канал умрёт.</div></div>
+    </section>
+
+    <!-- 04 CARD -->
+    <section class="pane" data-k="card">
+      <div class="kick"><b>04</b> · Открытие карточки груза</div>
+      <h1>Открыл карточку — подобрали верно</h1>
+      <div class="lead">Открыл — смотрит детали груза и маршрут. Но всё про цену и условия оплаты заблюрено до верификации.</div>
+      <div class="metric"><span class="ml">Метрика этапа</span><span>Доля открывших карточку из тех, кому показали подборку</span><span class="dg">низкая → подбор мимо (сигнал качества матчинга)</span></div>
+      <div style="background:var(--warn-soft);border-left:3px solid var(--warn);border-radius:0 8px 8px 0;padding:9px 13px;font-size:12px;color:var(--warn);margin:-8px 0 14px"><b>🔴 Сейчас на платформе:</b> цена и комиссия на карточке считаются неверно (везде 5%), выбор оплаты не работает → ценник недостоверен.</div>
+      <div class="sech">Мокап — карточка груза (как в проде, деньги заблюрены)</div>
+      <div class="mock-wrap">
+        <div style="background:#fff;border:1px solid #D7DEE7;border-radius:13px;overflow:hidden;width:100%;box-shadow:0 6px 22px rgba(20,35,60,.12)">
+          <div style="padding:14px 22px;border-bottom:1px solid #ECEFF3;display:flex;align-items:center;gap:12px">
+            <div style="font-family:var(--display);font-weight:600;font-size:19px;color:var(--ink)">Тверь <span style="color:var(--muted);font-size:13px">+1</span> → Дзержинск</div>
+            <span style="color:var(--muted);font-size:12.5px">695 км · 15.06 10:00</span>
+            <span style="background:#FEF3E2;color:#9A4A12;font-size:10.5px;border-radius:6px;padding:2px 9px">⏱ 2ч</span>
+            <span style="flex:1"></span>
+            <span style="border:1px solid var(--accent);color:var(--accent);font-size:10.5px;border-radius:6px;padding:3px 10px;font-weight:600">↻ Обновить</span>
+            <span style="color:var(--muted);font-size:14px">✕</span>
+          </div>
+          <div style="display:flex;gap:14px;padding:16px 22px 10px">
+            <div style="flex:1;background:var(--panel);border-radius:9px;padding:12px 14px"><div style="font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted)">Цена ГВ НДС</div><div class="blur" style="font-size:21px;font-weight:700;color:var(--ink);margin:3px 0 1px">120 000 ₽</div><div class="blur" style="font-size:10px;color:var(--muted)">98 361 ₽ без НДС</div></div>
+            <div style="flex:1;background:var(--pos-soft);border-radius:9px;padding:12px 14px"><div style="font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted)">Ваша ставка (при 5%) НДС</div><div class="blur" style="font-size:21px;font-weight:700;color:#1F5C3A;margin:3px 0 1px">114 000 ₽</div><div class="blur" style="font-size:10px;color:#3a7a57">93 443 ₽ без НДС</div></div>
+            <div style="flex:0 0 150px;background:var(--panel);border-radius:9px;padding:12px 14px;text-align:center"><div class="blur" style="font-size:21px;font-weight:700;color:var(--ink)">164 ₽</div><div style="font-size:10px;color:var(--muted)">за км (при 5%)</div></div>
+          </div>
+          <div style="padding:8px 22px"><div style="font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--ink);font-weight:700;margin-bottom:6px">Условия оплаты</div>
+            <table style="width:100%;font-size:12.5px" class="blur">
+              <tr style="color:var(--muted);font-size:10px;text-align:left"><th style="font-weight:600;padding:3px 0">Маржа</th><th style="font-weight:600">Цена ГВ</th><th style="font-weight:600">Комиссия</th><th style="font-weight:600">Ваш доход</th><th style="font-weight:600">Сроки оплаты</th></tr>
+              <tr style="color:var(--ink);border-top:1px solid #EEF1F5"><td style="padding:5px 0">5%</td><td>120 000 ₽</td><td>6 000 ₽</td><td style="color:var(--pos)">114 000 ₽</td><td style="color:var(--accent)">Без предоплаты</td></tr>
+              <tr style="color:var(--ink);border-top:1px solid #EEF1F5"><td style="padding:5px 0">10%</td><td>120 000 ₽</td><td>12 000 ₽</td><td style="color:var(--pos)">108 000 ₽</td><td style="color:var(--accent)">7 б.д. после получения оригиналов</td></tr>
+              <tr style="color:var(--ink);border-top:1px solid #EEF1F5"><td style="padding:5px 0">20%</td><td>120 000 ₽</td><td>24 000 ₽</td><td style="color:var(--pos)">96 000 ₽</td><td style="color:var(--accent)">90% на загрузке</td></tr>
+            </table>
+          </div>
+          <div style="padding:10px 22px 6px"><div style="font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--ink);font-weight:700">Заказчик</div>
+            <div style="font-size:13px;color:var(--ink);margin-top:3px">ООО «ЧАСТНАЯ ПИВОВАРНЯ "АФАНАСИЙ"» <span style="color:var(--muted);font-size:11px">· ИНН 7704209474</span></div>
+            <div class="blur" style="font-size:11px;color:var(--muted)">Отсрочка платежа: 30 банковских дней</div>
+          </div>
+          <div style="padding:8px 22px 14px"><div style="font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--ink);font-weight:700;margin-bottom:6px">Маршрут и сроки <span style="color:var(--muted);font-weight:400">(2 точки)</span></div>
+            <div style="font-size:12px;color:var(--ink);line-height:1.5"><span style="color:var(--pos);font-weight:700">● Загрузка</span> · 15.06 10:00 · <b>Тверь</b> <span style="color:var(--muted)">— Россия, Тверская обл., Тверь, Коминтерна, 95</span></div>
+            <div style="font-size:12px;color:var(--ink);line-height:1.5;margin-top:3px"><span style="color:var(--blue);font-weight:700">● Выгрузка</span> · <b>Подольск</b> <span style="color:var(--muted)">— Россия, Московская обл., Подольск, 142100</span></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;padding:14px 22px;border-top:1px solid #ECEFF3;background:var(--accent-soft)"><div style="font-size:13px;color:#9A4A12"><b>Цена и условия оплаты — после верификации</b></div><span style="flex:1"></span><span class="cta" style="padding:10px 26px;font-size:13px">⚡ В торг</span></div>
+        </div>
+      </div>
+      <div class="grid2" style="margin-top:14px">
+        <div class="box now"><div class="bk">Что блюрим</div><p>Всё про деньги: цена ГВ, ваша ставка, ₽/км и вся таблица условий оплаты (комиссия 5/10/20%, ваш доход, сроки).</p></div>
+        <div class="box prop"><div class="bk">Зачем</div><p>Возражения <b>«низкие цены»</b> и <b>«большие комиссии»</b> — он не спорит с тем, чего не видит. Чтобы открыть — заполняет данные. Возражение = <b>мотивация верифицироваться</b>.</p></div>
+      </div>
+      <div class="kir"><div class="av">К</div><div class="kt"><span class="who">Кирилл · логист онбординга</span>⚠ Баги оплаты: <b>перевозчик не может выбрать вариант оплаты</b> — везде показывается 5%, и считается неверно (пересчитываем вручную, 2–3 тыс). Предоплаты на CargoTech нет. Логист потом созванивается и уточняет оплату вручную.</div></div>
+    </section>
+
+    <!-- 05 BACK -->
+    <section class="pane" data-k="back">
+      <div class="kick"><b>05</b> · Если отвалился — возврат</div>
+      <h1>Не открыл? Возвращаем — сначала без людей</h1>
+      <div class="lead">Сначала дешёвый автоматический возврат. Человек подключается последним — и приносит инсайт через касдев.</div>
+      <div class="metric"><span class="ml">Метрика этапа</span><span>CTR пуша · возврат на платформу из канала (MAX/TG/Email)</span><span class="dg">+ доля дошедших до логиста (последний рубеж)</span></div>
+      <div style="display:flex;gap:12px;align-items:stretch;margin-top:6px;flex-wrap:wrap">
+        <div style="flex:1;min-width:170px;background:var(--warn-soft);border-radius:11px;padding:15px"><div class="kick" style="color:var(--warn)">отвал</div><div style="font-family:var(--display);font-weight:600;font-size:15px;color:var(--ink);margin:6px 0">Не открыл / не в торг</div><p style="font-size:12px">Подборка не зацепила или не верифицирован.</p></div>
+        <div style="flex:1;min-width:170px;background:var(--panel);border-radius:11px;padding:15px"><div class="kick" style="color:var(--blue)">авто · возврат</div><div style="font-family:var(--display);font-weight:600;font-size:15px;color:var(--ink);margin:6px 0">Ежедневная подборка</div><p style="font-size:12px">В его канал (MAX/TG/Email/SMS). Дёшево, масштабируемо.</p></div>
+        <div style="flex:1;min-width:170px;background:#fff;border:1px solid var(--accent);border-radius:11px;padding:15px"><div class="kick" style="color:var(--accent)">человек</div><div style="font-family:var(--display);font-weight:600;font-size:15px;color:var(--ink);margin:6px 0">Логист + касдев</div><p style="font-size:12px">Звонит с <b>готовым</b> грузом. Заодно — почему не зашло.</p></div>
+      </div>
+      <div class="sech">Мокап — сообщение в MAX / Telegram и письмо (неверифицированному)</div>
+      <div style="display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap">
+        <!-- ===== messenger ===== -->
+        <div style="flex:1;min-width:300px;max-width:380px">
+          <div style="font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:6px">MAX / Telegram</div>
+          <div style="background:#D7E3F0;border-radius:14px;padding:13px 12px">
+            <div style="display:flex;align-items:center;gap:7px;margin-bottom:8px;padding:0 2px">
+              <span style="width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-family:var(--display);font-weight:600;display:flex;align-items:center;justify-content:center;font-size:12px">M</span>
+              <span style="font-size:11.5px;font-weight:700;color:var(--ink)">CargoTech MARSHALL</span><span style="font-size:9px;color:var(--muted)">бот</span>
+            </div>
+            <div style="background:#fff;border-radius:5px 15px 15px 15px;box-shadow:0 1px 2px rgba(0,0,0,.14);overflow:hidden;max-width:290px">
+              <div style="padding:11px 13px 9px">
+                <div style="font-weight:700;color:var(--ink);font-size:13px">Груз под ваш профиль</div>
+                <div style="font-size:12.5px;color:var(--ink);margin-top:5px;line-height:1.5">Москва → Казань · 13 июня<br>Тент · 20 т · 720 км</div>
+                <div style="margin-top:7px;font-size:12px;color:var(--pos);font-weight:600">★ Ставка выше рынка · можно аванс</div>
+                <div style="margin-top:7px;font-size:11.5px;color:var(--slate);line-height:1.45">Точную ставку и «В торг» открываем после быстрой проверки компании — это <b>2 минуты</b>.</div>
+                <div style="text-align:right;font-size:9px;color:var(--muted);margin-top:5px">14:32 ✓✓</div>
+              </div>
+              <div style="border-top:1px solid #EEF1F5;color:var(--blue);font-size:12px;font-weight:700;text-align:center;padding:10px">Узнать ставку и забрать груз →</div>
+              <div style="border-top:1px solid #EEF1F5;color:var(--blue);font-size:11px;text-align:center;padding:9px">Ещё 6 грузов на моём направлении</div>
+            </div>
+          </div>
+        </div>
+        <!-- ===== email ===== -->
+        <div style="flex:1;min-width:330px;max-width:430px">
+          <div style="font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:6px">Email</div>
+          <div style="background:#fff;border:1px solid #D7DEE7;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(20,35,60,.09)">
+            <div style="padding:12px 16px;border-bottom:1px solid #ECEFF3">
+              <div style="display:flex;align-items:center;gap:8px"><span style="width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-family:var(--display);font-weight:600;display:flex;align-items:center;justify-content:center;font-size:12px">M</span><div><div style="font-size:11.5px;font-weight:700;color:var(--ink)">CargoTech MARSHALL</div><div style="font-size:9.5px;color:var(--muted)">noreply@marshal.tech · сейчас</div></div></div>
+              <div style="font-size:13px;font-weight:700;color:var(--ink);margin-top:9px;line-height:1.35">Москва → Казань, 13 июня — груз под ваш тент, ставка выше рынка</div>
+            </div>
+            <div style="padding:14px 16px">
+              <div style="font-size:12.5px;color:var(--slate);line-height:1.55">Вы возите <b style="color:var(--ink)">Тент 20 т</b> по маршруту Москва ↔ Казань. Появился свежий груз на <b style="color:var(--ink)">13 июня</b> — ставка по нему <b style="color:var(--pos)">выше рынка</b>, можно аванс.<br><br>Точную ставку и кнопку «В торг» открываем после быстрой проверки компании — это <b style="color:var(--ink)">2 минуты</b>.</div>
+              <div class="cta" style="margin-top:13px;font-size:12.5px;padding:11px">Узнать ставку и забрать груз →</div>
+              <div style="font-size:10px;color:var(--muted);text-align:center;margin-top:8px">+ ещё 6 грузов на вашем направлении</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="grid2" style="margin-top:16px">
+        <div class="box prop"><div class="bk">Показываем</div><p>Его <b>маршрут + тип ТС</b> (= «это для меня») · сигнал денег <b>без цифры</b> (выше рынка, аванс) · «2 минуты» · «ещё N грузов». Не «новый груз» — снимает спам-претензию Кирилла.</p></div>
+        <div class="box now"><div class="bk">НЕ показываем — это крючок</div><p>Точную <b>ставку, цену, комиссию, условия</b> — за ними он и идёт в проверку. Слово «верификация» → «быстрая проверка». <span class="muted">Аванс/«выше рынка» — только если по грузу реально так (market index есть; аванс — где доступен).</span></p></div>
+      </div>
+      <div class="kir"><div class="av">К</div><div class="kt"><span class="who">Кирилл · логист онбординга</span>«~<b>70 на 30</b>: 70% говорят „лучше звоните сами, говорите что есть". Каналы — MAX, Telegram, частично почта». Но звонок — последний рубеж: сначала автоматика, иначе логист не масштабируется.</div></div>
+    </section>
+
+    <!-- 06 BRIDGE -->
+    <section class="pane" data-k="bridge">
+      <div class="kick"><b>06</b> · От груза — к проверке</div>
+      <h1>«Забери этот груз — осталась проверка»</h1>
+      <div class="lead">Перевозчик <b style="color:var(--ink)">уже открыл карточку</b> груза — значит груз его зацепил. В этот момент поверх карточки всплывает попап на быструю проверку. Привязка к конкретному грузу сильнее абстрактного «верифицируй аккаунт».</div>
+      <div class="metric"><span class="ml">Метрика этапа</span><span>Доля нажавших «забрать груз» из открывших карточку</span><span class="dg">переход «интерес → намерение верифицироваться»</span></div>
+      <div class="split">
+       <div>
+        <div style="position:relative;border:1px solid #D7DEE7;border-radius:13px;overflow:hidden;width:560px;max-width:100%;box-shadow:0 8px 26px rgba(20,35,60,.14)">
+          <div style="background:#fff">
+            <div style="padding:13px 18px;border-bottom:1px solid #ECEFF3;display:flex;align-items:center;gap:10px"><div style="font-family:var(--display);font-weight:600;font-size:16px;color:var(--ink)">Тверь <span style="color:var(--muted);font-size:11px">+1</span> → Дзержинск</div><span style="color:var(--muted);font-size:11px">695 км · 15.06</span><span style="flex:1"></span><span style="color:var(--muted);font-size:13px">✕</span></div>
+            <div style="display:flex;gap:10px;padding:13px 18px 8px">
+              <div style="flex:1;background:var(--panel);border-radius:8px;padding:9px;text-align:center"><div style="font-size:8px;text-transform:uppercase;color:var(--muted)">Цена ГВ</div><div class="blur" style="font-size:16px;font-weight:700;color:var(--ink)">120 000 ₽</div></div>
+              <div style="flex:1;background:var(--pos-soft);border-radius:8px;padding:9px;text-align:center"><div style="font-size:8px;text-transform:uppercase;color:var(--muted)">Ваша ставка</div><div class="blur" style="font-size:16px;font-weight:700;color:#1F5C3A">114 000 ₽</div></div>
+              <div style="flex:1;background:var(--panel);border-radius:8px;padding:9px;text-align:center"><div style="font-size:8px;text-transform:uppercase;color:var(--muted)">за км</div><div class="blur" style="font-size:16px;font-weight:700;color:var(--ink)">164 ₽</div></div>
+            </div>
+            <div style="padding:6px 18px"><div style="font-size:9px;text-transform:uppercase;color:var(--ink);font-weight:700">Условия оплаты</div><div class="blur" style="font-size:10px;color:var(--ink);line-height:1.7;margin-top:3px">5% · 120 000 · 6 000 · 114 000 · без предоплаты<br>10% · 120 000 · 12 000 · 108 000 · 7 б.д.</div></div>
+            <div style="padding:8px 18px"><div style="font-size:9px;text-transform:uppercase;color:var(--muted)">Заказчик</div><div style="font-size:11px;color:var(--ink)">ООО «Частная пивоварня "Афанасий"»</div></div>
+            <div style="display:flex;align-items:center;padding:11px 18px;border-top:1px solid #ECEFF3;background:var(--accent-soft)"><span style="font-size:10px;color:#9A4A12"><b>Цена — после верификации</b></span><span style="flex:1"></span><span class="cta" style="padding:7px 18px">В торг</span></div>
+          </div>
+          <div style="position:absolute;inset:0;background:rgba(15,35,58,.52)"></div>
+          <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:330px;max-width:88%;background:#fff;border-radius:14px;box-shadow:0 16px 44px rgba(0,0,0,.42);padding:18px 20px">
+            <div style="font-family:var(--display);font-weight:600;font-size:16px;color:var(--ink)">Этот груз почти ваш</div>
+            <div style="font-size:11px;color:var(--muted);margin:5px 0 9px">Тверь → Дзержинск · тент · 20 т</div>
+            <p style="font-size:12px;color:var(--slate);line-height:1.5">Чтобы <b style="color:var(--ink)">узнать ставку и забрать груз</b> — пройдите быструю проверку компании. Это <b style="color:var(--ink)">2 минуты</b>.</p>
+            <div class="cta" style="margin-top:12px;font-size:12.5px;padding:11px">Забрать груз — пройти проверку →</div>
+            <div style="text-align:center;font-size:10.5px;color:var(--muted);margin-top:8px">Позже</div>
+          </div>
+        </div>
+       </div>
+       <div class="s-side">
+        <div class="box prop"><div class="bk">Он уже открыл карточку</div><p>Раз открыл — груз его <b>зацепил</b>. В этот момент поверх карточки всплывает попап на проверку: ловим на пике интереса.</p></div>
+        <div class="box prop"><div class="bk">Почему привязка к грузу</div><p>Проверку проходит не «чтобы пользоваться платформой», а <b>чтобы забрать вот этот груз</b>. Скучная верификация = «последний шаг до денег».</p></div>
+       </div>
+      </div>
+    </section>
+
+    <!-- 07 SPLIT -->
+    <section class="pane" data-k="split">
+      <div class="kick"><b style="background:var(--ink);color:#fff;padding:2px 8px;border-radius:5px;font-size:10px;letter-spacing:.5px">ОБЗОР ФАЗЫ</b> &nbsp;Верификация</div>
+      <h1>Верификация — это 3 шага, не один</h1>
+      <div class="lead">Это <b style="color:var(--ink)">не отдельный экран</b>, а карта фазы. Верификация = 3 реальных шага (ниже — кликабельны): у каждого свой отвал и своё лекарство, поэтому общий «3%» разносим на <b style="color:var(--ink)">3 точки замера</b>, а не меряем одним числом.</div>
+      <div class="metric"><span class="ml">Метрика фазы</span><span>Рег → верификация (по 3 шагам A/B/C отдельно)</span><span class="now">сейчас: 363 верифиц · 14.8%</span><span class="dg">гипотеза: →30%+. Разнести один «3%» на 3 точки замера</span></div>
+      <div class="sech">3 реальных шага верификации — нажмите, чтобы открыть</div>
+      <div style="display:flex;gap:12px;align-items:stretch;flex-wrap:wrap">
+        <button class="vstep" onclick="select('bridge')"><div class="kick" style="color:var(--blue)">шаг A · намерение</div><div style="font-family:var(--display);font-weight:600;font-size:14px;color:var(--ink);margin:6px 0">Жмёт «узнать ставку»</div><p style="font-size:11.5px"><span class="warnx">Отвал:</span> страшно начинать.<br><span style="color:var(--pos)">Чиним:</span> хук на груз, «≈2 мин».</p><div class="go">→ Бридж · этап 6</div></button>
+        <button class="vstep" onclick="select('form')"><div class="kick" style="color:var(--accent)">шаг B · заполнение</div><div style="font-family:var(--display);font-weight:600;font-size:14px;color:var(--ink);margin:6px 0">Вносит данные</div><p style="font-size:11.5px"><span class="warnx">Отвал:</span> трение (паспорт, печать).<br><span style="color:var(--pos)">Чиним:</span> автозаполнение, убрать лишнее.</p><div class="go">→ Форма · этап 8</div></button>
+        <button class="vstep" onclick="select('wait')"><div class="kick" style="color:var(--muted)">шаг C · проверка</div><div style="font-family:var(--display);font-weight:600;font-size:14px;color:var(--ink);margin:6px 0">Отправка → проверка</div><p style="font-size:11.5px"><span class="warnx">Отвал:</span> долго / непонятно.<br><span style="color:var(--pos)">Чиним:</span> SLA, автопроверка, статус.</p><div class="go">→ Ожидание · этап 9</div></button>
+      </div>
+      <div class="kir"><div class="av">К</div><div class="kt"><span class="who">Кирилл · логист онбординга</span>«Полноценной СБ нет — проверка компании <b>платная (~420 ₽)</b>, дорого. Смотрим, что <b>компания есть на АТИ, „зелёная" (не „красная")</b> и контакты совпадают». → По ИНН (DaData) автоматизируется <b>реестровая часть</b> (существует / действующая / реквизиты). Репутацию «зелёный/красный» и контакты DaData НЕ даёт — нужен рейтинг с <b>АТИ (которую парсим)</b> или своя риск-модель.</div></div>
+      <div style="margin-top:14px;background:var(--accent-soft);border-radius:10px;padding:13px 16px;font-size:13px;color:#7a4a25"><b style="color:#9A4A12">Задача:</b> продумать <b style="color:var(--ink)">полную автоматизацию верификации</b> — реестр по ИНН (DaData) + репутация (рейтинг АТИ / своя риск-модель) + сверка контактов. Цель: <b style="color:var(--ink)">снять проверку с логистов</b>, чтобы она занимала <b style="color:var(--ink)">минуты</b> — и перевозчик не успел уйти с платформы.</div>
+    </section>
+
+    <!-- 08 FORM -->
+    <section class="pane" data-k="form">
+      <div class="kick"><b>08</b> · Заполнение · шаг B</div>
+      <h1>Большую часть — подставить автоматически</h1>
+      <div class="lead">Сейчас ≈14 обязательных полей + 2 скана паспорта — главный затык. Почти всё уже есть в открытых базах: оставить перевозчику минимум.</div>
+      <div class="metric"><span class="ml">Метрика этапа</span><span>Начал → отправил форму (главный отвал на шаге B)</span><span class="dg">дальше: верифиц → взял в торг — 3.3%, главный затык всей воронки</span></div>
+      <div class="grid2">
+        <div class="box now"><div class="bk">Просим сейчас</div><p><b>Реквизиты+банк:</b> ОГРН, КПП, адрес, Р/С, БИК, банк, корр.счёт.<br><b>Руководитель:</b> ФИО, паспорт (серия/номер/даты), почта, телефон + <b>2 скана паспорта</b>.</p></div>
+        <div class="box prop"><div class="bk">Предлагаем</div><p>По <b>ИНН</b> → ОГРН, КПП, название, адрес, директор. По <b>БИК</b> → банк, корр.счёт. Паспорт+руководитель — <b>убрать</b> (для ООО не нужны, были под факторинг).</p></div>
+      </div>
+      <div class="met-row"><span class="chip r">было ≈14 полей вручную</span><span class="chip g">стало 2: Р/С · БИК (ИНН — из регистрации)</span><span class="chip g">технически легко: DaData ~1–2 дня</span></div>
+
+      <div class="sech">Мокап — форма верификации (как предлагаем)</div>
+      <div class="mock-wrap">
+        <div class="screen" style="width:400px;max-width:100%">
+          <div class="ftitle">Моя организация</div>
+          <div class="fsub">подтянуто по ИНН — проверьте и подтвердите</div>
+          <div class="field" style="background:#E8F2EC;color:#1F5C3A;display:flex;align-items:center;gap:6px">ИНН 7704209474 · ООО «Афанасий» <span style="margin-left:auto;font-size:9px">✓ авто</span></div>
+          <div class="field" style="background:#E8F2EC;color:#1F5C3A;display:flex">ОГРН · КПП · юр. адрес <span style="margin-left:auto;font-size:9px">✓ по ИНН</span></div>
+          <div class="field" style="background:#E8F2EC;color:#1F5C3A;display:flex">Руководитель: Иванов И. И. <span style="margin-left:auto;font-size:9px">✓ ЕГРЮЛ</span></div>
+          <div style="font-size:9px;color:var(--muted);margin:9px 0 4px">ввести вручную:</div>
+          <div class="field"><b>Расчётный счёт *</b></div>
+          <div class="field" style="display:flex"><b>БИК *</b> <span style="margin-left:auto;color:var(--muted);font-size:9px">→ банк подставится</span></div>
+          <div class="cta">Отправить на проверку →</div>
+          <div class="fnote">паспорт директора и сканы убрали — для ООО не нужны</div>
+        </div>
+      </div>
+
+      <div class="sech">Возможность: добавить сотрудника (логиста) — <span style="color:var(--warn)">необязательно для верификации, просил Кирилл</span></div>
+      <div style="display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap">
+        <div style="flex:1;min-width:300px;max-width:360px">
+          <div style="font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:6px">В кабинете → Команда</div>
+          <div class="screen" style="max-width:100%">
+            <div style="font-family:var(--display);font-weight:600;font-size:14px;color:var(--ink);margin-bottom:10px">+ Добавить сотрудника</div>
+            <div style="font-size:9px;color:var(--muted);margin-bottom:3px">Роль</div>
+            <div class="field">Логист ▾</div>
+            <div class="field"><b>ФИО</b></div>
+            <div class="field"><b>Почта</b></div>
+            <div class="cta">Отправить ссылку на регистрацию →</div>
+          </div>
+        </div>
+        <div style="flex:1;min-width:330px;max-width:430px">
+          <div style="font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:6px">→ Логисту приходит письмо</div>
+          <div style="background:#fff;border:1px solid #D7DEE7;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(20,35,60,.09)">
+            <div style="padding:12px 16px;border-bottom:1px solid #ECEFF3">
+              <div style="display:flex;align-items:center;gap:8px"><span style="width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-family:var(--display);font-weight:600;display:flex;align-items:center;justify-content:center;font-size:12px">M</span><div><div style="font-size:11.5px;font-weight:700;color:var(--ink)">CargoTech MARSHALL</div><div style="font-size:9.5px;color:var(--muted)">noreply@marshal.tech</div></div></div>
+              <div style="font-size:13px;font-weight:700;color:var(--ink);margin-top:9px">Вас добавили в компанию на CargoTech MARSHALL</div>
+            </div>
+            <div style="padding:14px 16px">
+              <div style="font-size:12.5px;color:var(--slate);line-height:1.55">Компания <b style="color:var(--ink)">ООО «Частная пивоварня "Афанасий"»</b> присоединилась к CargoTech MARSHALL и добавила вас как <b style="color:var(--ink)">логиста</b>.<br><br>Перейдите по ссылке, чтобы получить доступ к личному кабинету.</div>
+              <div class="cta" style="margin-top:13px;font-size:12.5px;padding:11px">Получить доступ к ЛК →</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="kir"><div class="av">К</div><div class="kt"><span class="who">Кирилл · логист онбординга</span>Сперва: «всё нужно». Но при разборе по полям сам согласился: «<b>руководитель для верификации вообще не нужен</b>… сканы — без них никак не повлияет… паспорт текстом — тоже не сильно нужен». Нужно: ИНН + банк + контакт. И просил: <b>OCR-скан документа</b> → автозаполнение ТС/водителя.</div></div>
+    </section>
+
+    <!-- 09 WAIT -->
+    <section class="pane" data-k="wait">
+      <div class="kick"><b>09</b> · Ожидание проверки</div>
+      <h1>Пока идёт проверка — два сценария</h1>
+      <div class="lead">Сама проверка быстрая, риск — что перевозчик уйдёт, пока ждёт. <b style="color:var(--ink)">Сейчас процесс ручной</b> (логист), <b style="color:var(--ink)">цель — автоматизация</b>.</div>
+      <div class="metric"><span class="ml">Метрика этапа</span><span>Время от «отправил» до вердикта · доля вернувшихся и взявших груз</span><span class="now">сейчас: зависит от занятости логиста</span><span class="dg">цель: ≤ 5 минут в рабочие часы — и вернуть, если ушёл</span></div>
+
+      <div class="sech" style="color:var(--blue)">Сценарий 1 — ручной (как сейчас, логист)</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px">
+        <div style="display:flex;gap:11px;align-items:flex-start"><span style="display:inline-flex;width:24px;height:24px;border-radius:50%;background:var(--blue);color:#fff;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex:0 0 auto">1</span><div style="font-size:13px;color:var(--ink);padding-top:2px">Компания отправляет данные на верификацию.</div></div>
+        <div style="display:flex;gap:11px;align-items:flex-start"><span style="display:inline-flex;width:24px;height:24px;border-radius:50%;background:var(--blue);color:#fff;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex:0 0 auto">2</span><div style="font-size:13px;color:var(--ink);padding-top:2px">Уведомление в <b>Bitrix24 + MAX</b> отделу онбординга: «новая компания на верификацию».</div></div>
+        <div style="display:flex;gap:11px;align-items:flex-start"><span style="display:inline-flex;width:24px;height:24px;border-radius:50%;background:var(--blue);color:#fff;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex:0 0 auto">3</span><div style="font-size:13px;color:var(--ink);padding-top:2px">Логист открывает платформу и проверяет компанию — <b>в рабочие часы до 5 минут</b>.<br><span style="color:var(--muted);font-size:12px">Параллельно перевозчику: «проверяем, до 5 минут» + предложение «пока заполните ТС и водителей → сразу заберёте груз после проверки» (согласен → ссылка в раздел «Транспорт»).</span></div></div>
+        <div style="display:flex;gap:11px;align-items:flex-start"><span style="display:inline-flex;width:24px;height:24px;border-radius:50%;background:var(--blue);color:#fff;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex:0 0 auto">4</span><div style="font-size:13px;color:var(--ink);padding-top:2px">Готово → перевозчику <b>везде</b> (платформа + его канал): «Вы верифицированы! Вот подходящие грузы → забирайте».</div></div>
+        <div style="display:flex;gap:11px;align-items:flex-start"><span style="display:inline-flex;width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex:0 0 auto">5</span><div style="font-size:13px;color:var(--ink);padding-top:2px"><b>Не вернулся за 24 ч / не взял груз</b> → заявка подсвечивается онбордеру-логисту → он связывается, не теряем.</div></div>
+      </div>
+
+      <div class="sech">Что видит перевозчик</div>
+      <div style="display:flex;gap:18px;flex-wrap:wrap;margin-bottom:16px">
+        <div style="flex:1;min-width:300px;max-width:380px">
+          <div style="font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:6px">во время проверки</div>
+          <div style="background:#D7E3F0;border-radius:14px;padding:13px 12px">
+            <div style="display:flex;align-items:center;gap:7px;margin-bottom:8px;padding:0 2px"><span style="width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-family:var(--display);font-weight:600;display:flex;align-items:center;justify-content:center;font-size:12px">M</span><span style="font-size:11.5px;font-weight:700;color:var(--ink)">CargoTech MARSHALL</span></div>
+            <div style="background:#fff;border-radius:5px 15px 15px 15px;box-shadow:0 1px 2px rgba(0,0,0,.14);overflow:hidden;max-width:290px">
+              <div style="padding:11px 13px 9px">
+                <div style="font-weight:700;color:var(--ink);font-size:13px">Проверяем вашу компанию</div>
+                <div style="font-size:12px;color:var(--ink);margin-top:5px;line-height:1.5">В рабочие часы это <b>до 5 минут</b>. Пока заполните транспорт и водителей — после проверки сразу выберете ТС и заберёте груз.</div>
+              </div>
+              <div style="border-top:1px solid #EEF1F5;color:var(--blue);font-size:12px;font-weight:700;text-align:center;padding:10px">Заполнить транспорт →</div>
+            </div>
+          </div>
+        </div>
+        <div style="flex:1;min-width:300px;max-width:380px">
+          <div style="font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:6px">после проверки</div>
+          <div style="background:#D7E3F0;border-radius:14px;padding:13px 12px">
+            <div style="display:flex;align-items:center;gap:7px;margin-bottom:8px;padding:0 2px"><span style="width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-family:var(--display);font-weight:600;display:flex;align-items:center;justify-content:center;font-size:12px">M</span><span style="font-size:11.5px;font-weight:700;color:var(--ink)">CargoTech MARSHALL</span></div>
+            <div style="background:#fff;border-radius:5px 15px 15px 15px;box-shadow:0 1px 2px rgba(0,0,0,.14);overflow:hidden;max-width:290px">
+              <div style="padding:11px 13px 9px">
+                <div style="font-weight:700;color:var(--pos);font-size:13px">✓ Вы верифицированы!</div>
+                <div style="font-size:12px;color:var(--ink);margin-top:5px;line-height:1.5">Подходящие грузы под вас уже открыты — забирайте.</div>
+              </div>
+              <div style="border-top:1px solid #EEF1F5;color:var(--blue);font-size:12px;font-weight:700;text-align:center;padding:10px">Смотреть мои грузы →</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sech" style="color:var(--pos)">Сценарий 2 — автоматизация (к чему прийти)</div>
+      <div style="display:flex;align-items:stretch;gap:9px;flex-wrap:wrap;margin-bottom:12px">
+        <div style="flex:1;min-width:130px;background:var(--panel);border-radius:10px;padding:13px;font-size:12px;color:var(--ink)">Отправил данные</div>
+        <div style="display:flex;align-items:center;color:var(--muted);font-family:var(--display)">→</div>
+        <div style="flex:1.5;min-width:200px;background:#E8F2EC;border-radius:10px;padding:13px;font-size:12px;color:#1F5C3A"><b>Авто-проверка · секунды</b><br>DaData (реестр) · Фокус/СПАРК (благонадёжность) · SMS (телефон)</div>
+        <div style="display:flex;align-items:center;color:var(--muted);font-family:var(--display)">→</div>
+        <div style="flex:1.2;min-width:160px;background:#fff;border:1px solid var(--hair);border-radius:10px;padding:13px;font-size:12px"><b style="color:var(--pos)">Чисто → одобрено мгновенно</b><br><span style="color:var(--warn);font-weight:700">Флаг → логисту</span> (только спорные ~10–20%)</div>
+      </div>
+      <div style="background:var(--accent-soft);border-radius:10px;padding:12px 16px;font-size:12px;color:#7a4a25"><b style="color:#9A4A12">Что реально и когда:</b> реестр (DaData) внедрить можно рано (дни) — мгновенно отсекает несуществующих/ликвидированных. Репутация-скоринг (Фокус/СПАРК + рейтинг с АТИ) — отдельный долгий трек. Цель — снять проверку с логистов, чтобы перевозчик не ждал человека.</div>
+      <div class="kir"><div class="av">К</div><div class="kt"><span class="who">Кирилл · логист онбординга</span>«Сам процесс верификации немного времени занимает — <b>но это с момента, как логист начал проверять</b>. До этого он может быть занят, не видеть». → именно ожидание человека и теряет перевозчика.</div></div>
+    </section>
+
+    <!-- 10 TORG · хочет в торг -->
+    <section class="pane" data-k="torg">
+      <div class="kick"><b>10</b> · Хочет взять в торг</div>
+      <h1>Цена раскрылась — и оффер подошёл</h1>
+      <div class="lead">Момент истины: после верификации блюр снят, перевозчик видит <b style="color:var(--ink)">реальную ставку и условия</b>. Если оффер подходит — жмёт «В торг». Это первый сигнал намерения после того, как он увидел настоящие деньги — и самый важный замер нижней воронки.</div>
+      <div class="metric"><span class="ml">Метрика этапа</span><span>Открыл карточку → нажал «В торг»</span><span class="dg">новый замер — сейчас схлопнут в общие 3.3%. Главный разрез: продукт vs ликвидность</span></div>
+
+      <div class="sech">Мокап — момент истины: блюр снят, появляется «В торг»</div>
+      <div style="display:flex;gap:16px;align-items:stretch;flex-wrap:wrap">
+        <div style="flex:1;min-width:255px;max-width:330px">
+          <div style="font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:6px">до верификации</div>
+          <div style="background:#fff;border:1px solid #D7DEE7;border-radius:12px;padding:14px 16px;box-shadow:0 3px 14px rgba(20,35,60,.08)">
+            <div style="font-family:var(--display);font-weight:600;font-size:15px;color:var(--ink)">Тверь <span style="color:var(--muted);font-size:11px">+1</span> → Дзержинск</div>
+            <div style="font-size:10px;color:var(--muted);margin-bottom:10px">695 км · 15.06</div>
+            <div style="background:var(--panel);border-radius:8px;padding:11px;text-align:center;margin-bottom:9px"><div style="font-size:9px;text-transform:uppercase;color:var(--muted)">Ваша ставка</div><div class="blur" style="font-size:19px;font-weight:700;color:var(--ink)">114 000 ₽</div></div>
+            <div style="background:var(--accent-soft);border-radius:7px;padding:9px;font-size:10.5px;color:#9A4A12;text-align:center"><b>Цена — после верификации</b></div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;color:var(--accent);font-family:var(--display);font-size:24px">→</div>
+        <div style="flex:1;min-width:255px;max-width:330px">
+          <div style="font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--pos);font-weight:700;margin-bottom:6px">после верификации — раскрыто</div>
+          <div style="background:#fff;border:1.5px solid var(--accent);border-radius:12px;padding:14px 16px;box-shadow:0 8px 22px rgba(226,98,14,.18)">
+            <div style="font-family:var(--display);font-weight:600;font-size:15px;color:var(--ink)">Тверь <span style="color:var(--muted);font-size:11px">+1</span> → Дзержинск</div>
+            <div style="font-size:10px;color:var(--muted);margin-bottom:10px">695 км · 15.06</div>
+            <div style="background:var(--pos-soft);border-radius:8px;padding:11px;text-align:center;margin-bottom:11px"><div style="font-size:9px;text-transform:uppercase;color:var(--muted)">Ваша ставка</div><div style="font-size:19px;font-weight:700;color:#1F5C3A">114 000 ₽</div><div style="font-size:9px;color:#3a7a57">164 ₽/км · можно аванс</div></div>
+            <div class="cta" style="padding:10px">⚡ В торг</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid2" style="margin-top:16px">
+        <div class="box prop"><div class="bk">Что значит этот клик</div><p>Оффер подошёл — <b>цена, маршрут, дата, тип ТС</b> устроили. Первый сигнал реального намерения после того, как он увидел настоящие деньги. Блюр работал на верификацию — здесь он окупается.</p></div>
+        <div class="box now"><div class="bk">Главный разрез воронки</div><p><b>Много жмут, мало доходят</b> → проблема ПРОДУКТА (трение ТС, этапы 11–12). <b>Мало даже жмут</b> → проблема ОФФЕРА: <b>цена</b> (главная гипотеза команды) / ликвидность. Прямой ответ на «почему слабо откликаются».</p></div>
+      </div>
+      <div class="kir"><div class="av">К</div><div class="kt"><span class="who">Кирилл · логист онбординга</span>«Теряем, когда подбираем груз — если ничего не подошло, сразу „мне неинтересно"». 4 причины не взять: <b>направление · тип ТС · цена · дата</b>. → если на этом шаге массовый отвал, лечить надо <b>ликвидность (экспедиторы)</b>, а не кнопки.</div></div>
+    </section>
+
+    <!-- 11 ADDTC · заводит ТС и водителя -->
+    <section class="pane" data-k="addtc">
+      <div class="kick"><b>11</b> · Заводит ТС и водителя · затык первички</div>
+      <h1>Нет машины — заводит прямо в модалке</h1>
+      <div class="lead">Нажал «В торг» — но участвовать нельзя без ТС и водителя. <b style="color:var(--ink)">Первичный</b> перевозчик заводит их прямо здесь, не уходя с груза. Вернувшийся с сохранёнными машинами шаг пропускает (выбирает из списка). Поэтому это <b style="color:var(--ink)">затык именно первого раза</b> — и самое сильное трение финала.</div>
+      <div class="metric"><span class="ml">Метрика этапа</span><span>Нажал «В торг» → завёл ТС + водителя (у кого их не было)</span><span class="dg">отвал = трение формы. Сегментная метрика: только первичка, вернувшиеся шаг минуют</span></div>
+
+      <div class="box prop"><div class="bk">Как ускорить</div><p>Перевернуть форму: <b>сначала скан документа</b> → поля заполняются сами → галочка «проверил, всё верно». Снимает ~80% ручного ввода.</p></div>
+      <div class="met-row"><span class="chip r">было ≈12 полей вручную</span><span class="chip g">стало: скан → проверить + 2 ручных (кузов/погрузка)</span><span class="chip b">то же для водителя: скан ВУ/паспорта → автозаполнение</span></div>
+
+      <div class="sech">Упрощение формы «Новое ТС» — скан вперёд, поля подставить</div>
+      <div style="display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap">
+        <div style="flex:0 0 auto">
+          <div style="font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--warn);font-weight:700;margin-bottom:6px">как сейчас</div>
+          <div class="screen" style="width:300px;max-width:100%">
+            <div class="ftitle">Новое ТС</div>
+            <div class="fsub" style="color:var(--warn)">≈12 полей вручную, скан — в конце</div>
+            <div class="field">Госномер * · Телефон *</div>
+            <div class="field">VIN * · Номер СТС *</div>
+            <div class="field">Марка * · Модель *</div>
+            <div class="field">Тип ТС ▾ · Тип кузова ▾</div>
+            <div class="field">Грузоподъёмность * · Тип погрузки ▾</div>
+            <div class="field">Прицеп (опц.) · Компания-владелец</div>
+            <div class="field" style="border:1px dashed var(--warn);color:var(--warn);background:#fff">📎 Скан СТС * — последним</div>
+            <div class="cta" style="background:var(--muted)">Добавить ТС</div>
+          </div>
+        </div>
+        <div style="flex:0 0 auto">
+          <div style="font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--pos);font-weight:700;margin-bottom:6px">как предлагаем</div>
+          <div class="screen" style="width:340px;max-width:100%">
+            <div class="ftitle">Новое ТС</div>
+            <div class="fsub">сфотографируйте СТС — поля заполним сами</div>
+            <div style="border:1.5px dashed var(--accent);border-radius:8px;padding:13px;text-align:center;background:var(--accent-soft);margin-bottom:10px"><div style="font-size:20px">📷</div><div style="font-size:11.5px;font-weight:700;color:#9A4A12">Сканировать СТС</div><div style="font-size:9px;color:#9A4A12">или загрузить фото</div></div>
+            <div class="field" style="background:#E8F2EC;color:#1F5C3A;display:flex">Госномер · VIN · № СТС <span style="margin-left:auto;font-size:9px">✓ со скана</span></div>
+            <div class="field" style="background:#E8F2EC;color:#1F5C3A;display:flex">Марка · Модель · г/п <span style="margin-left:auto;font-size:9px">✓ со скана</span></div>
+            <div style="font-size:9px;color:var(--muted);margin:9px 0 4px">вручную (нет в документе):</div>
+            <div class="field">Тип кузова ▾ · Тип погрузки ▾</div>
+            <div style="display:flex;gap:7px;align-items:center;margin:11px 0;font-size:11.5px;color:var(--slate)"><span style="width:15px;height:15px;border:1.5px solid var(--accent);border-radius:4px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:10px">✓</span> Проверил — данные верны</div>
+            <div class="cta">Добавить ТС →</div>
+            <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:7px">если ТС уже в системе — подтянем по госномеру мгновенно</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:16px;background:var(--accent-soft);border-radius:10px;padding:13px 16px;font-size:12.5px;color:#7a4a25"><b style="color:#9A4A12">Что по реализации:</b> основной источник автозаполнения — <b style="color:var(--ink)">OCR-скан</b> документа: это <b style="color:var(--ink)">не как DaData (дни), а проект на недели</b> (готовые РФ-сервисы: Smart Engines, Dbrain, Tinkoff, Yandex Vision; POC 1–2 нед, прод 3–6). Тип кузова/погрузки в документе нет — остаются ручными.<br><b style="color:#9A4A12">❓ Уточнить у команды:</b> что на этом шаге даёт проверка ТС по госномеру в нашей базе — дедуп (предупредить, что машина уже есть) или автоподстановку полей, если ТС уже заводили.</div>
+
+      <div class="kir"><div class="av">К</div><div class="kt"><span class="who">Кирилл · логист онбординга</span>«Заявку <b>нельзя взять без водителя и ТС</b> — добавляют постепенно, под конкретный найденный рейс, это нормально». Просил: <b>OCR-скан документа → автозаполнение</b> ТС/водителя — «намного быстрее, вся инфа берётся из документа (кроме тент/реф)».</div></div>
+    </section>
+
+    <!-- 12 APPLY · подаёт заявку в торг -->
+    <section class="pane" data-k="apply">
+      <div class="kick"><b>12</b> · Подаёт заявку в торг</div>
+      <h1>Выбирает ТС, соглашается — и участвует</h1>
+      <div class="lead">ТС и водитель есть (завёл на шаге 11 или были сохранены). Выбирает их из списка, выбирает вариант оплаты, ставит галочку согласия и жмёт «Участвовать в торгах». Это финальный коммит — здесь видно, доходит ли перевозчик <b style="color:var(--ink)">с машиной</b> до реальной подачи заявки.</div>
+      <div class="metric"><span class="ml">Метрика этапа</span><span>Имеет/завёл ТС → реально подал заявку в торг</span><span class="now">сейчас: 12 · 3.3%</span><span class="dg">n≈12 — направление, не KPI. Отвал покажет: дошёл с ТС, но не подал</span></div>
+      <div style="background:var(--warn-soft);border-left:3px solid var(--warn);border-radius:0 8px 8px 0;padding:9px 13px;font-size:12px;color:var(--warn);margin:-8px 0 14px"><b>🔴 Сейчас на платформе:</b> перевозчик не может выбрать вариант оплаты — везде 5%, комиссия считается неверно.</div>
+
+      <div class="sech">Мокап — модалка «Взять в торги» (ТС выбран, + фикс выбора оплаты)</div>
+      <div class="split">
+       <div>
+        <div style="background:#fff;border:1px solid #D7DEE7;border-radius:13px;overflow:hidden;width:520px;max-width:100%;box-shadow:0 8px 26px rgba(20,35,60,.14)">
+          <div style="padding:13px 18px;border-bottom:1px solid #ECEFF3;display:flex;align-items:center;gap:10px"><div style="font-family:var(--display);font-weight:600;font-size:16px;color:var(--ink)">Взять в торги</div><span style="color:var(--muted);font-size:11px">Тверь <span style="font-size:10px">+1</span> → Дзержинск · 695 км</span><span style="flex:1"></span><span style="color:var(--muted);font-size:13px">✕</span></div>
+          <div style="padding:13px 18px 8px"><div style="font-size:9px;text-transform:uppercase;color:var(--pos);letter-spacing:.5px;font-weight:700">Цена ГВ · раскрыта после верификации</div><div style="font-family:var(--display);font-size:23px;font-weight:700;color:var(--ink);margin-top:2px">120 000 ₽ <span style="font-size:11px;color:var(--muted);font-weight:400">НДС · 98 361 ₽ без НДС</span></div></div>
+          <div style="padding:4px 18px 6px"><div style="font-size:9px;text-transform:uppercase;color:var(--ink);font-weight:700;letter-spacing:.5px;margin-bottom:6px">Вариант оплаты <span style="color:var(--pos);font-weight:600">— перевозчик выбирает сам</span></div>
+            <div style="display:flex;gap:8px">
+              <div style="flex:1;border:1.5px solid var(--accent);background:var(--accent-soft);border-radius:8px;padding:8px 10px"><div style="font-size:11px;font-weight:700;color:var(--ink)">● 5%</div><div style="font-size:11px;color:var(--pos);font-weight:600">114 000 ₽</div><div style="font-size:9px;color:var(--muted)">без предоплаты</div></div>
+              <div style="flex:1;border:1px solid var(--hair);border-radius:8px;padding:8px 10px"><div style="font-size:11px;font-weight:700;color:var(--muted)">○ 10%</div><div style="font-size:11px;color:var(--ink)">108 000 ₽</div><div style="font-size:9px;color:var(--muted)">7 б.д.</div></div>
+              <div style="flex:1;border:1px solid var(--hair);border-radius:8px;padding:8px 10px"><div style="font-size:11px;font-weight:700;color:var(--muted)">○ 20%</div><div style="font-size:11px;color:var(--ink)">96 000 ₽</div><div style="font-size:9px;color:var(--pos)">90% на загрузке</div></div>
+            </div>
+          </div>
+          <div style="padding:8px 18px 4px"><div style="font-size:9px;text-transform:uppercase;color:var(--ink);font-weight:700;letter-spacing:.5px;margin-bottom:5px">Транспорт <span class="warnx">*</span></div>
+            <div style="display:flex;gap:8px;align-items:center"><div class="field" style="flex:1;margin:0;display:flex;align-items:center;color:var(--ink);background:#E8F2EC;border:1px solid #BEE0CC">А 123 ВС 77 · тент · 20 т <span style="margin-left:auto;color:#1F5C3A;font-size:9px">✓ выбран ▾</span></div><span style="color:var(--muted);font-size:10px;white-space:nowrap">+ Добавить</span></div>
+            <div style="font-size:9px;text-transform:uppercase;color:var(--ink);font-weight:700;letter-spacing:.5px;margin:10px 0 5px">Водитель <span class="warnx">*</span></div>
+            <div style="display:flex;gap:8px;align-items:center"><div class="field" style="flex:1;margin:0;display:flex;align-items:center;color:var(--ink);background:#E8F2EC;border:1px solid #BEE0CC">Петров П. П. · кат. CE <span style="margin-left:auto;color:#1F5C3A;font-size:9px">✓ выбран ▾</span></div><span style="color:var(--muted);font-size:10px;white-space:nowrap">+ Добавить</span></div>
+          </div>
+          <div style="padding:12px 18px 4px"><div style="display:flex;gap:8px;align-items:flex-start;font-size:11px;color:var(--slate);background:var(--panel);border-radius:8px;padding:10px 12px"><span style="width:16px;height:16px;border:1.5px solid var(--accent);border-radius:4px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:11px">✓</span> Я согласен, что в случае отказа от перевозки, выигранной в торгах, будут начислены штрафы согласно общим условиям использования платформы</div></div>
+          <div style="display:flex;align-items:center;padding:12px 18px;border-top:1px solid #ECEFF3;background:var(--panel);margin-top:6px"><span style="font-size:10px;color:var(--muted)">всё заполнено — можно участвовать</span><span style="flex:1"></span><span class="cta" style="padding:9px 22px">Участвовать в торгах</span></div>
+        </div>
+       </div>
+       <div class="s-side">
+        <div class="box prop"><div class="bk">Что чиним здесь</div><p><b>Перевозчик сам выбирает вариант оплаты</b> (5/10/20%) и видит правильный доход — сейчас везде 5% и считается неверно, логист пересчитывает вручную (расхождение 2–3 тыс).</p></div>
+        <div class="box now"><div class="bk">Почему может не дожать — гипотезы</div><p>Главная (команда): <b>цена не устроила</b> — дошёл из интереса, но ставка не та. Под вопросом: штраф за отказ. Сначала мерим отвал на этом шаге, потом проверяем, какая гипотеза верна.</p></div>
+       </div>
+      </div>
+      <div class="kir"><div class="av">К</div><div class="kt"><span class="who">Кирилл · логист онбординга</span>⚠ Баг: перевозчик <b>не может выбрать вариант оплаты</b> — везде показывается 5%, и комиссия считается неверно (логист пересчитывает вручную). Логист <b>не видит</b>, какой вариант (5/10/20%) выбрал перевозчик. Это надо чинить вместе с этим шагом.</div></div>
+    </section>
+
+    <!-- 13 BIDDING · торг и ставка -->
+    <section class="pane" data-k="bidding">
+      <div class="kick"><b>13</b> · Торг и ставка</div>
+      <h1>Торг сейчас по телефону — переносим в платформу</h1>
+      <div class="lead">Перевозчик подал ставку (этап 12). Аукцион идёт <b style="color:var(--ink)">на площадке клиента</b> — менеджер торгует там. Цена обычно падает → сейчас менеджер <b style="color:var(--ink)">звонит</b>: «упала до X, снижаешь?». Так по кругу, до выигрыша или отказа. Это единственный этап, который пока <b style="color:var(--ink)">вообще нельзя пройти на платформе</b>.</div>
+      <div class="metric"><span class="ml">Метрика этапа</span><span>Доля торгов, доведённых до результата (выигран / осознанный отказ) без звонка</span><span class="now">сейчас: 0% — всё по телефону</span><span class="dg">n≈12 — направление, не KPI</span></div>
+      <div style="background:var(--warn-soft);border-left:3px solid var(--warn);border-radius:0 8px 8px 0;padding:9px 13px;font-size:12px;color:var(--warn);margin:-8px 0 14px"><b>🔴 Сейчас на платформе:</b> торг проходит только по телефону, а <b>ставка перевозчика не доходит до менеджера</b> (видит дефолт) → торг на платформе фактически фиктивен.</div>
+
+      <div class="kir"><div class="av" style="background:var(--warn);font-size:13px">📞</div><div class="kt"><span class="who">Как сейчас — торг по телефону</span>Менеджер относит ставку перевозчика на площадку клиента. Цена падает → <b>звонит</b>: «упала до X, снижаешь?». <b>Нет</b> → торг проигран, с этим перевозчиком по заявке больше не работаем (логист ищет похожее). <b>Да</b> → торгует дальше → опять упала → опять звонок. По кругу, пока перевозчик не <b>откажется</b> (слишком низко) или логист не выиграет рейс.</div></div>
+
+      <div class="sech">Как предлагаем — петля в платформе (две стороны)</div>
+      <div class="split">
+       <div>
+        <div style="font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:6px">ЛК менеджера (Marshall HUB) · «Проверка заявок» → карточка</div>
+        <div style="background:#fff;border:1px solid #D7DEE7;border-radius:13px;overflow:hidden;width:560px;max-width:100%;box-shadow:0 8px 26px rgba(20,35,60,.14)">
+          <div style="padding:11px 16px;border-bottom:1px solid #ECEFF3;display:flex;align-items:center;gap:9px"><span style="color:var(--accent)">📍</span><div style="font-family:var(--display);font-weight:600;font-size:15px;color:var(--ink)">Саратов → Ртищевский</div><span style="color:var(--muted);font-size:10px">230 км · 15.06 → 15.06</span><span style="background:#FEF3E2;color:#9A4A12;font-size:9px;border-radius:6px;padding:2px 8px">⏱ торг идёт</span><span style="flex:1"></span><div style="text-align:right"><div style="color:var(--pos);font-family:var(--display);font-weight:600;font-size:15px">+1 200 ₽</div><div style="font-size:8px;color:var(--muted)">прибыль</div></div></div>
+          <div style="padding:7px 16px 0;font-size:10.5px;color:var(--pos)">Груз у вас в работе, удачи!</div>
+          <div style="display:flex;gap:9px;padding:10px 16px">
+            <div style="flex:1;background:var(--panel);border-radius:9px;padding:9px 11px"><div style="font-size:8.5px;text-transform:uppercase;color:var(--muted)">Цена ГВ НДС</div><div style="font-size:15px;font-weight:700;color:var(--ink)">10 000 ₽</div><div style="font-size:8.5px;color:var(--muted)">8 197 ₽ без НДС</div></div>
+            <div style="flex:1.2;background:var(--panel);border-radius:9px;padding:9px 11px"><div style="font-size:8.5px;text-transform:uppercase;color:var(--muted)">Цена перевозчика НДС</div><div style="font-size:15px;font-weight:700;color:var(--ink)">8 800 ₽</div><div style="font-size:8px;color:var(--warn)">⚠ сейчас дефолт, не реальная ставка</div></div>
+            <div style="flex:0 0 70px;background:var(--panel);border-radius:9px;padding:9px 8px;text-align:center"><div style="font-size:15px;font-weight:700;color:var(--ink)">43 ₽</div><div style="font-size:8.5px;color:var(--muted)">за км</div></div>
+          </div>
+          <div style="margin:6px 16px 12px;border:1.5px solid var(--accent);border-radius:11px;overflow:hidden">
+            <div style="background:var(--accent-soft);padding:7px 13px;display:flex;align-items:center;gap:7px"><span style="font-family:var(--display);font-weight:600;font-size:12px;color:#9A4A12">⚖ Торг</span><span style="background:var(--accent);color:#fff;font-size:8px;font-weight:700;border-radius:4px;padding:1px 6px">новое</span><span style="font-size:9px;color:#9A4A12;margin-left:auto">тут впишет и увидит ответ</span></div>
+            <div style="padding:11px 13px">
+              <div style="font-size:9px;text-transform:uppercase;color:var(--ink);font-weight:700;margin-bottom:5px"><span style="color:var(--accent)">①</span> Актуальная ставка перевозчику <span style="color:var(--muted);font-weight:400">(куда дошли торги, на руки, НДС)</span></div>
+              <div style="display:flex;gap:8px;align-items:center"><div class="field" style="flex:0 0 118px;margin:0;display:flex;align-items:center;font-weight:700;color:var(--ink);font-size:14px">8 000 ₽</div><span class="cta" style="padding:9px 14px;font-size:12px">Написать перевозчику</span></div>
+              <div style="font-size:9px;color:var(--muted);margin-top:5px">он видит эту цифру как свою — без перевода из клиентской</div>
+              <div style="margin-top:11px;padding:10px 12px;background:var(--pos-soft);border-radius:9px">
+                <div style="font-size:9px;text-transform:uppercase;color:#1F5C3A;font-weight:700;margin-bottom:3px"><span style="color:var(--accent)">②</span> Ответ перевозчика · 14:34</div>
+                <div style="font-size:13px;color:var(--ink)"><b style="color:#1F5C3A">✅ Торгуем дальше</b> — до его минимума</div>
+                <div style="font-size:11px;color:var(--slate);margin-top:2px">его минимум (ставка): <b style="color:var(--ink)">7 500 ₽</b> · ещё есть куда снижать</div>
+              </div>
+            </div>
+          </div>
+          <div style="padding:0 16px 8px;font-size:10.5px;color:var(--slate);line-height:1.7">
+            <div><b style="color:var(--ink)">Заказчик:</b> ООО «Союзагрохим» · ИНН 7722690557 · отсрочка 15 б.д.</div>
+            <div><b style="color:var(--ink)">Перевозчик:</b> Савушкина Валерия · ТС О123АА41 · вод. Тестовый Водитель</div>
+          </div>
+          <div style="padding:9px 16px 14px;border-top:1px solid #ECEFF3"><div style="font-size:9px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:6px">Статус выполнения</div>
+            <div style="font-size:10.5px;color:var(--slate);line-height:1.7"><span style="color:var(--muted)">●</span> Заявка взята в работу · 06:48<br><span style="color:var(--blue)">●</span> Запрос отправлен · 14:32<br><span style="color:var(--pos)">●</span> Ответ: торгуем до 7 500 · 14:34</div>
+          </div>
+        </div>
+       </div>
+       <div class="s-side">
+        <div style="font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:6px">Перевозчику в его канал · MAX / Telegram</div>
+        <div style="background:#D7E3F0;border-radius:14px;padding:13px 12px;max-width:330px">
+          <div style="display:flex;align-items:center;gap:7px;margin-bottom:8px;padding:0 2px"><span style="width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-family:var(--display);font-weight:600;display:flex;align-items:center;justify-content:center;font-size:12px">M</span><span style="font-size:11.5px;font-weight:700;color:var(--ink)">CargoTech MARSHALL</span><span style="font-size:9px;color:var(--muted)">бот</span></div>
+          <div style="background:#fff;border-radius:5px 15px 15px 15px;box-shadow:0 1px 2px rgba(0,0,0,.14);overflow:hidden">
+            <div style="padding:11px 13px 9px">
+              <div style="font-weight:700;color:var(--ink);font-size:13px">Саратов → Ртищевский</div>
+              <div style="font-size:12.5px;color:var(--ink);margin-top:5px;line-height:1.5">Ставка по рейсу в торгах опустилась до <b style="color:var(--pos)">8 000 ₽</b> (ваша, на руки, НДС).</div>
+              <div style="margin-top:7px;font-size:12.5px;color:var(--ink);font-weight:700">Торгуемся дальше?</div>
+              <div style="text-align:right;font-size:9px;color:var(--muted);margin-top:5px">14:32</div>
+            </div>
+            <div style="border-top:1px solid #EEF1F5;color:var(--pos);font-size:12px;font-weight:700;text-align:center;padding:9px">✓ Торгуем до моего минимума</div>
+            <div style="border-top:1px solid #EEF1F5;color:var(--blue);font-size:12px;text-align:center;padding:9px">Снизить минимум</div>
+            <div style="border-top:1px solid #EEF1F5;color:var(--warn);font-size:12px;text-align:center;padding:9px">Отказаться от рейса</div>
+          </div>
+        </div>
+        <div class="box prop" style="margin-top:12px"><div class="bk">Замыкает петлю</div><p>Перевозчик жмёт кнопку → ответ <b>записывается на заявку</b> у менеджера. Звонок не нужен. Та же механика, что в MAX-ботах Диспетчерской.</p></div>
+       </div>
+      </div>
+
+      <div style="background:var(--ink);color:#EAF0F8;border-radius:10px;padding:11px 15px;font-size:12.5px;margin:6px 0 16px;display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;box-shadow:0 2px 10px rgba(20,35,60,.16)"><span style="font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:#fff;background:var(--accent);font-weight:700;padding:4px 11px;border-radius:7px">как делится 10 000 ₽ клиента</span><span>перевозчику <b style="color:#fff">8 000 ₽</b> (ставка на руки)</span><span style="color:#AEC0DC">·</span><span>Marshall <b style="color:#fff">2 000 ₽</b> (спред + комиссия CargoTech)</span><span style="color:#AEC0DC;font-size:11.5px">чем ниже ставка перевозчика — тем больше спред</span></div>
+
+      <div class="sech">Где логист видит ответ — на самой заявке, не в переписке</div>
+      <div style="display:flex;gap:12px;align-items:stretch;flex-wrap:wrap">
+        <div style="flex:1;min-width:200px;background:var(--panel);border-radius:11px;padding:14px"><div class="kick" style="color:var(--accent)">1 · чип в списке</div><div style="font-family:var(--display);font-weight:600;font-size:13.5px;color:var(--ink);margin:6px 0">Видно не открывая</div><p style="font-size:11px;line-height:1.6">⏳ ждём ответ → <span style="color:var(--pos)">✅ торгует до Y</span> → <span style="color:var(--warn)">❌ отказался</span> → <span style="color:var(--accent)">📞 нужен звонок</span></p></div>
+        <div style="flex:1;min-width:200px;background:var(--panel);border-radius:11px;padding:14px"><div class="kick" style="color:var(--blue)">2 · блок «Торг» в карточке</div><div style="font-family:var(--display);font-weight:600;font-size:13.5px;color:var(--ink);margin:6px 0">Ответ + его флор</div><p style="font-size:11px;line-height:1.6">Ответ перевозчика и его текущий минимум — здесь же. Заодно чинит баг «менеджер не видит ставку».</p></div>
+        <div style="flex:1;min-width:200px;background:var(--panel);border-radius:11px;padding:14px"><div class="kick" style="color:var(--pos)">3 · таймлайн + колокол</div><div style="font-family:var(--display);font-weight:600;font-size:13.5px;color:var(--ink);margin:6px 0">История + пуш</div><p style="font-size:11px;line-height:1.6">События в «Статусе выполнения» + уведомление в колокол: «перевозчик ответил».</p></div>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:8px;align-items:center;background:var(--warn-soft);border-radius:9px;padding:10px 14px;font-size:12px;color:var(--warn)"><b>Нет ответа за 5 минут</b> → авто-флаг <b>«нужен звонок»</b> падает логисту (сам, не надеемся, что он смотрит) — как 24ч-флаг на этапе 9. Тогда — звонок.</div>
+
+      <div class="grid2" style="margin-top:16px">
+        <div class="box now"><div class="bk">Баги, без которых никак</div><p>(1) <b>Ставка перевозчика не доходит до менеджера</b> — он видит системный дефолт, а не реальную ставку. (2) Неясно, что значит <b>«торговать до»</b> — цена клиента или доход перевозчика?</p></div>
+        <div class="box prop"><div class="bk">Как должно быть</div><p>Ставка/флор — <b>единый объект на заявке</b>, виден обоим. На экране перевозчика всегда <b>два числа</b>: цена торга (платит клиент) и «тебе на руки» минус комиссия.</p></div>
+      </div>
+
+      <div style="margin-top:16px;background:var(--accent-soft);border-radius:10px;padding:13px 16px;font-size:12.5px;color:#7a4a25"><b style="color:#9A4A12">Апгрейд той же кнопки — прокси-флор:</b> вместо пинга на КАЖДОМ падении — спросить <b style="color:var(--ink)">истинный минимум один раз</b>. Пока цена ≥ минимума — не дёргаем; пинг только когда цена <b style="color:var(--ink)">пробила</b> минимум (снизить / отказаться). N пингов → 0–1. <b style="color:var(--ink)">Полное авто</b> (система сама бидит на площадке клиента) требует читать внешнюю падающую цену — это парсинг-инфраструктура 78 площадок; зависит от площадки. Долгий шаг — завести тендер клиента к нам (нет 3-й площадки).</div>
+    </section>
+
+    <!-- 14 WON · выигрыш и проверка СБ -->
+    <section class="pane" data-k="won">
+      <div class="kick"><b>14</b> · Выигрыш и проверка СБ</div>
+      <h1>Выиграл торг — проверяем машину и водителя</h1>
+      <div class="lead">Логист выиграл рейс → перевозчику летит «поздравляем, заявка ваша». Теперь менеджер проверяет по СБ <b style="color:var(--ink)">конкретные ТС и водителя</b>, которые поедут. Прошли → статус «Одобрено». Не прошли → нужна срочная замена.</div>
+      <div class="metric"><span class="ml">Метрика этапа</span><span>Выиграл → прошёл СБ → «одобрено»</span><span class="dg">время проверки СБ · из «не прошёл»: заменил машину vs отвалился</span></div>
+
+      <div class="sech">Мокап — перевозчику в канал: выигрыш</div>
+      <div style="max-width:340px">
+        <div style="background:#D7E3F0;border-radius:14px;padding:13px 12px">
+          <div style="display:flex;align-items:center;gap:7px;margin-bottom:8px;padding:0 2px"><span style="width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-family:var(--display);font-weight:600;display:flex;align-items:center;justify-content:center;font-size:12px">M</span><span style="font-size:11.5px;font-weight:700;color:var(--ink)">CargoTech MARSHALL</span></div>
+          <div style="background:#fff;border-radius:5px 15px 15px 15px;box-shadow:0 1px 2px rgba(0,0,0,.14);padding:11px 13px 9px">
+            <div style="font-weight:700;color:var(--pos);font-size:13.5px">🎉 Поздравляем! Вы выиграли торг</div>
+            <div style="font-size:12.5px;color:var(--ink);margin-top:5px;line-height:1.5">Рейс <b>Саратов → Ртищевский</b> — ваш. Ставка <b>8 000 ₽</b>.<br>Проверяем вашу машину и водителя — это быстро, пришлём статус.</div>
+            <div style="text-align:right;font-size:9px;color:var(--muted);margin-top:5px">15:10 ✓✓</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sech">Два исхода проверки СБ</div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap">
+        <div style="flex:1;min-width:285px;border:1px solid var(--pos);border-radius:12px;overflow:hidden">
+          <div style="background:var(--pos-soft);padding:8px 13px;font-size:11px;font-weight:700;color:#1F5C3A">✓ СБ пройдена</div>
+          <div style="padding:12px 14px">
+            <div style="font-size:11px;color:var(--slate);margin-bottom:9px">У менеджера статус заявки → <span style="background:var(--pos-soft);color:#1F5C3A;border-radius:6px;padding:2px 9px;font-weight:700;font-size:11px">✓ Одобрено</span></div>
+            <div style="background:#D7E3F0;border-radius:11px;padding:8px"><div style="background:#fff;border-radius:4px 12px 12px 12px;padding:9px 11px;font-size:12px;color:var(--ink)"><b style="color:var(--pos)">✅ Машина и водитель одобрены</b><br>Следующий шаг — подписать договор-заявку.</div></div>
+          </div>
+        </div>
+        <div style="flex:1;min-width:285px;border:1px solid var(--warn);border-radius:12px;overflow:hidden">
+          <div style="background:var(--warn-soft);padding:8px 13px;font-size:11px;font-weight:700;color:var(--warn)">✕ СБ не пройдена — нужна замена</div>
+          <div style="padding:12px 14px">
+            <div style="background:#D7E3F0;border-radius:11px;padding:8px"><div style="background:#fff;border-radius:4px 12px 12px 12px;overflow:hidden"><div style="padding:9px 11px;font-size:12px;color:var(--ink)"><b style="color:var(--warn)">❗ СБ не пройдена по водителю</b><br>Замените машину или водителя <b>как можно скорее</b> — иначе штраф (вы согласились в торгах).</div><div style="border-top:1px solid #EEF1F5;color:var(--accent);font-size:12px;font-weight:700;text-align:center;padding:9px">Заменить ТС / водителя →</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid2" style="margin-top:16px">
+        <div class="box now"><div class="bk">Как сейчас при провале</div><p>Логист <b>звонит</b>: «срочно дай новую машину/водителя, иначе штраф». Снова телефон — и легко потерять уже выигранный рейс.</p></div>
+        <div class="box prop"><div class="bk">Как предлагаем</div><p>Авто-уведомление в канал + кнопка <b>«Заменить ТС/водителя»</b> прямо в заявке (та же форма, что на этапе 11) + <b>дедлайн</b> и условие штрафа (галочка из торгов).</p></div>
+      </div>
+    </section>
+
+    <!-- 15 SIGN · договор и подписание -->
+    <section class="pane" data-k="sign">
+      <div class="kick"><b>15</b> · Договор-заявка и подписание</div>
+      <h1>Договор, подписи — и заявка закрыта 🎉</h1>
+      <div class="lead">ТС и водитель прошли СБ → договор-заявка <b style="color:var(--ink)">автозаполняется</b> (итоговая ставка и оплата уже выбраны на торге). <b style="color:var(--ink)">Перевозчик подписывает первым</b>, менеджер проверяет и подписывает вторым → <b style="color:var(--ink)">рейс закрыт</b>. Это финал воронки.</div>
+      <div class="metric"><span class="ml">Метрика этапа</span><span>Доля заявок, подписанных НА платформе</span><span class="now">сейчас: не измерить (подписывают в УЛ)</span><span class="dg">прокси North Star Ур.1 — уехавший рейс; n≈12 — направление</span></div>
+      <div style="background:var(--warn-soft);border-left:3px solid var(--warn);border-radius:0 8px 8px 0;padding:9px 13px;font-size:12px;color:var(--warn);margin:-8px 0 14px"><b>🔴 Сейчас на платформе:</b> подписание фактически идёт в УЛ; на платформе инверсия — договор вынужденно составляет перевозчик, итог торга не хранится.</div>
+
+      <div class="sech">Как предлагаем — договор автозаполнен, подписывают по очереди</div>
+      <div style="background:var(--pos-soft);border-radius:9px;padding:10px 14px;font-size:12px;color:#1F5C3A;margin-bottom:14px"><b>Договор автозаполняется платформой</b> — итоговая ставка и условия оплаты уже выбраны на торге. Формировать вручную никому не нужно.</div>
+      <div class="split">
+       <div>
+        <div style="font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:6px"><span style="color:var(--accent)">①</span> Перевозчик подписывает первым · ЛК «В работе»</div>
+        <div style="background:#fff;border:1px solid #D7DEE7;border-radius:10px;padding:9px 12px;display:flex;align-items:center;gap:10px;margin-bottom:10px;box-shadow:0 2px 10px rgba(20,35,60,.07);max-width:420px">
+          <div style="flex:1"><div style="font-family:var(--display);font-weight:600;font-size:12.5px;color:var(--ink)">Саратов → Ртищевский</div><div style="font-size:9px;color:var(--muted)">#20653927300 · ставка 8 000 ₽</div></div>
+          <div style="text-align:right"><div style="color:var(--pos);font-size:11px;font-weight:700">✓ Одобрено</div><span style="display:inline-block;margin-top:4px;border:1px solid var(--pos);color:var(--pos);border-radius:6px;padding:3px 11px;font-size:10.5px;font-weight:700">✎ Заявка</span></div>
+        </div>
+        <div style="background:#fff;border:1px solid #D7DEE7;border-radius:12px;overflow:hidden;box-shadow:0 8px 24px rgba(20,35,60,.12);max-width:420px">
+          <div style="padding:10px 14px;border-bottom:1px solid #ECEFF3;display:flex;align-items:center;gap:8px"><span>📄</span><div style="font-family:var(--display);font-weight:600;font-size:12px;color:var(--ink)">Заявка на груз #20653927300</div><span style="flex:1"></span><span style="color:var(--muted);font-size:12px">✕</span></div>
+          <div style="padding:11px 14px">
+            <div style="font-size:9px;letter-spacing:.5px;text-transform:uppercase;color:var(--ink);font-weight:700;margin-bottom:7px">Печати и подписи</div>
+            <div style="display:flex;gap:10px">
+              <div style="flex:1;border:1px solid var(--hair);border-radius:8px;padding:8px;text-align:center"><div style="font-size:8px;text-transform:uppercase;color:var(--muted);font-weight:700">Подпись директора</div><svg width="58" height="22" viewBox="0 0 58 22" style="margin:3px 0"><path d="M3 16 C 10 4, 14 4, 18 14 S 26 22, 32 10 S 44 2, 50 14 L 56 8" fill="none" stroke="#3a4a7a" stroke-width="1.6" stroke-linecap="round"/></svg><div style="font-size:8.5px;color:var(--pos)">✓ сохранена</div></div>
+              <div style="flex:1;border:1px solid var(--hair);border-radius:8px;padding:8px;text-align:center"><div style="font-size:8px;text-transform:uppercase;color:var(--muted);font-weight:700">Печать компании</div><div style="width:34px;height:34px;border-radius:50%;border:2px solid #4a78c0;color:#4a78c0;font-size:6px;font-weight:700;display:flex;align-items:center;justify-content:center;margin:3px auto;text-align:center;line-height:1.05">Marshal<br>Team</div><div style="font-size:8.5px;color:var(--pos)">✓ сохранена</div></div>
+            </div>
+            <div style="font-size:9.5px;color:var(--muted);margin-top:8px">договор автозаполнен (ставка 8 000 ₽, оплата 5%) — проверьте предпросмотр</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;padding:10px 14px;border-top:1px solid #ECEFF3;background:var(--panel)"><span style="border:1px solid var(--hair);border-radius:7px;padding:7px 11px;font-size:11px;color:var(--slate)">Скачать PDF</span><span style="flex:1"></span><span class="cta" style="padding:8px 18px;font-size:12px">✍ Подписать</span></div>
+        </div>
+       </div>
+       <div class="s-side">
+        <div style="font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:6px"><span style="color:var(--accent)">②</span> Менеджер проверяет и подписывает · Marshall HUB</div>
+        <div style="background:#fff;border:1px solid #D7DEE7;border-radius:12px;overflow:hidden;box-shadow:0 8px 24px rgba(20,35,60,.12);max-width:380px">
+          <div style="padding:10px 14px;border-bottom:1px solid #ECEFF3;display:flex;align-items:center;gap:8px"><span>📄</span><div style="font-family:var(--display);font-weight:600;font-size:12px;color:var(--ink)">Договор-заявка #20653927300</div><span style="flex:1"></span><span style="background:#FEF3E2;color:#9A4A12;font-size:9px;border-radius:6px;padding:2px 8px">на вашей подписи</span></div>
+          <div style="padding:11px 14px">
+            <div style="background:var(--pos-soft);border-radius:8px;padding:8px 11px;font-size:11.5px;color:#1F5C3A;margin-bottom:9px"><b>✓ Перевозчик подписал</b> · 14:40</div>
+            <div style="font-size:11px;color:var(--slate);line-height:1.7">Ставка <b style="color:var(--ink)">8 000 ₽</b> · оплата 5% · <span style="color:var(--muted)">автозаполнено с торга</span><br>Проверьте и подпишите со стороны экспедитора.</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;padding:10px 14px;border-top:1px solid #ECEFF3;background:var(--panel)"><span style="border:1px solid var(--hair);border-radius:7px;padding:7px 11px;font-size:11px;color:var(--slate)">Скачать PDF</span><span style="flex:1"></span><span class="cta" style="padding:8px 18px;font-size:12px">✍ Подписать</span></div>
+        </div>
+       </div>
+      </div>
+
+      <div style="margin-top:16px;background:var(--pos-soft);border:1px solid var(--pos);border-radius:11px;padding:14px 16px;display:flex;align-items:center;gap:13px"><span style="font-size:24px">🎉</span><div><div style="font-family:var(--display);font-weight:600;font-size:15px;color:#1F5C3A">Заявка закрыта</div><div style="font-size:12px;color:var(--slate)">Подписано обеими сторонами на платформе — рейс уехал. Конец воронки.</div></div></div>
+
+      <div class="grid2" style="margin-top:16px">
+        <div class="box now"><div class="bk">Баги сейчас</div><p>Составить договор-заявку сейчас может <b>только перевозчик</b> — функционал на его стороне. Но итоговую ставку и оплату задаёт экспедитор, а платформа их не хранит → подставить некому, и у экспедитора <b>нет функции</b> составить договор. В нынешних условиях это <b>вынужденно ложится на перевозчика</b>, хотя данные не его.</p></div>
+        <div class="box prop"><div class="bk">Как должно быть</div><p>Платформа знает итоговую ставку + выбранную оплату (с торга) → договор <b>автозаполняется</b>. Перевозчик подписывает <b>первым</b> → менеджер проверяет и подписывает вторым → заявка закрыта.</p></div>
+      </div>
+
+      <div style="margin-top:16px;background:var(--accent-soft);border-radius:10px;padding:13px 16px;font-size:12.5px;color:#7a4a25"><b style="color:#9A4A12">💡 Упростить печать и подпись:</b> перевозчики мало разбираются в форматах и фонах. Дать им <b style="color:var(--ink)">просто сфотографировать</b> печать и подпись — платформа сама вырежет фон и сделает чистый PNG (обычная обработка изображения / rembg; v1 — дни, устойчивость к плохим фото — 1–2 нед). Превью «как ляжет на договор» → сохранили один раз. Это <b style="color:var(--ink)">картинка для ЭДО</b> (как сейчас), не юр. ЭЦП — отдельный трек.</div>
+
+      <div class="kir"><div class="av">К</div><div class="kt"><span class="who">Кирилл · логист онбординга</span>«Печать/подпись добавляют <b>фоткой</b> — для ЭДО, чтобы не печатать; но не у всех, <b>электронной подписи у них нет</b>». Подпись/печать хранятся как PNG (выбираются, не вносятся каждый раз). Завязка на ЭДО/ПЭП.</div></div>
+    </section>
+
+    <!-- TASKS -->
+    <section class="pane" data-k="tasks">
+      <div class="kick"><b>Задачи</b> · итог по воронке</div>
+      <h1>Что делать — по приоритету</h1>
+      <div class="lead">Сводка из ревью команды: технические задачи (баги + новые фичи) и продуктовые/организационные, с приоритетом <span class="p p-h">выс</span> <span class="p p-m">сред</span> <span class="p p-l">низ</span>. Сначала — что делать сейчас.</div>
+
+      <div style="background:var(--warn-soft);border-left:3px solid var(--warn);border-radius:0 8px 8px 0;padding:12px 15px;font-size:12.5px;color:var(--warn);margin-bottom:6px"><b>🔴 Делать сейчас (P0):</b> почини денежное ядро — этапы 4/12 (оплата + комиссия) → 13 (ставка не доходит до менеджера) → 15 (хранить итог торга + дать менеджеру составлять договор); + закрой <b>Шаг 1</b> (15 интервью перевозчиков); + честность дека (сверить цифры шапки, не нести наружу до P0).</div>
+      <div style="background:var(--panel);border-radius:8px;padding:10px 15px;font-size:12px;color:var(--slate);margin-bottom:8px">⚠️ <b style="color:var(--ink)">Риск распыления:</b> не начинать OCR / авто-верификацию / экспедиторскую ось / авто-бид по 78 площадкам, пока ядро не работает и Шаг 1 не закрыт. Команда мала, runway короткий — сначала факт (интервью) + рабочая экономика сделки.</div>
+
+      <div class="tk-cols">
+        <div class="tk-col">
+          <div class="tk-h">⚙ Технические · баги</div>
+          <div class="tk"><span class="p p-h">выс</span><div><b>Ставка перевозчика не доходит до менеджера</b> — видит системный дефолт, торг фиктивен. <span class="st">этап 13</span></div></div>
+          <div class="tk"><span class="p p-h">выс</span><div><b>Выбор варианта оплаты заблокирован</b> (везде 5%) + комиссия считается неверно. <span class="st">этапы 4, 12</span></div></div>
+          <div class="tk"><span class="p p-h">выс</span><div><b>Инверсия договора</b>: составить может только перевозчик; платформа не хранит итог торга. <span class="st">этап 15</span></div></div>
+          <div class="tk"><span class="p p-h">выс</span><div><b>Торг проходит только по телефону</b> — не пройти в ЛК. <span class="st">этап 13</span></div></div>
+          <div class="tk"><span class="p p-m">сред</span><div>Менеджер не видит выбранный вариант оплаты. <span class="st">этап 12</span></div></div>
+          <div class="tk"><span class="p p-m">сред</span><div>Мутная машина состояний торга; ввод цены с НДС сломан. <span class="st">этап 13</span></div></div>
+          <div class="tk"><span class="p p-m">сред</span><div>Грузы не «проливаются» на площадку (часть порталов не синкается). <span class="st">лента</span></div></div>
+          <div class="tk"><span class="p p-m">сред</span><div>Нельзя добавить сотрудника/логиста после регистрации. <span class="st">этап 8</span></div></div>
+
+          <div class="tk-h">⚙ Технические · новые фичи</div>
+          <div class="tk"><span class="p p-h">выс</span><div><b>DaData-автозаполнение верификации</b> (ИНН→реквизиты, БИК→банк): ≈14→2 поля. <span class="st">этапы 1, 8</span></div></div>
+          <div class="tk"><span class="p p-h">выс</span><div><b>MVP «промпт вместо звонка»</b>: актуальная цена → бот-уведомление → inline-ответ записывается на заявку. <span class="st">этап 13</span></div></div>
+          <div class="tk"><span class="p p-h">выс</span><div><b>OCR-автозаполнение ТС/водителя</b> (скан → автозаполнение → «проверил»). <span class="st">этап 11 · недели</span></div></div>
+          <div class="tk"><span class="p p-m">сред</span><div>Прокси-флор (минимум 1 раз → авто-торг вниз). <span class="st">этап 13</span></div></div>
+          <div class="tk"><span class="p p-m">сред</span><div>Авто-верификация (DaData + рейтинг АТИ). <span class="st">этапы 7, 9</span></div></div>
+          <div class="tk"><span class="p p-m">сред</span><div>«Заменить ТС/водителя» при провале СБ + дедлайн/штраф. <span class="st">этап 14</span></div></div>
+          <div class="tk"><span class="p p-m">сред</span><div>Фото печати/подписи → авто-PNG (rembg), сохранить 1 раз → выбирать. <span class="st">этап 15</span></div></div>
+          <div class="tk"><span class="p p-m">сред</span><div>Канал уведомлений (MAX/TG/Email/SMS) — адресный пуш «твой груз». <span class="st">этапы 2, 5</span></div></div>
+          <div class="tk"><span class="p p-m">сред</span><div>Живая «текущая ставка» + таймаут-флаг торга. <span class="st">этап 13</span></div></div>
+          <div class="tk"><span class="p p-l">низ</span><div>Авто-бид на внешней площадке (парсинг 78). <span class="st">этап 13 · долгий</span></div></div>
+          <div class="tk"><span class="p p-l">низ</span><div>Поле «Компания» с DaData-автоподсказкой на регистрации. <span class="st">этап 1</span></div></div>
+        </div>
+
+        <div class="tk-col">
+          <div class="tk-h">🧭 Продуктовые / организационные</div>
+          <div class="tk"><span class="p p-h">выс</span><div><b>Заводить экспедиторов (Никотранс)</b> + наполнять ленту — ликвидность = корень затыка.</div></div>
+          <div class="tk"><span class="p p-h">выс</span><div><b>Утвердить новый упрощённый состав верификации</b> (ИНН + банк + контакт) — решение, по которому команда пересоберёт форму.</div></div>
+          <div class="tk"><span class="p p-m">сред</span><div><b>Определиться с приоритетом</b> мобильного приложения и мессенджера в десктопной версии.</div></div>
+          <div class="tk"><span class="p p-m">сред</span><div><b>Продумать логику уведомлений в мессенджере</b> для перевозчика.</div></div>
+          <div class="tk"><span class="p p-m">сред</span><div>Решить: онбординг-опрос обязательный или скипаемый.</div></div>
+          <div class="tk"><span class="p p-m">сред</span><div>Назначить, кто из онбординга роутит уведомление о новой верификации. <span class="st">этап 9</span></div></div>
+          <div class="tk"><span class="p p-m">сред</span><div>Проверить касдевом гипотезы блюр-цены и штрафа (не достраивать в деке).</div></div>
+          <div class="tk"><span class="p p-m">сред</span><div>Измерять подписание — ручной опрос логистов как прокси North Star.</div></div>
+          <div class="tk"><span class="p p-m">сред</span><div>Сегмент малотоннажек: спрос есть, грузов почти нет.</div></div>
+        </div>
+      </div>
+
+      <div style="margin-top:16px;font-size:11.5px;color:var(--muted);max-width:900px;line-height:1.5">Источник: ревью продуктового совета (6 агентов, 15.06). Приоритеты — рабочая гипотеза, финально расставить с Яковом/командой. Можно завести в Notion (Marshall Tasks) с Project/Subproject/Priority.</div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  const stages = document.querySelectorAll('.stage');
+  const panes = document.querySelectorAll('.pane');
+  function select(k){
+    stages.forEach(s=>s.classList.toggle('active', s.dataset.k===k));
+    panes.forEach(p=>p.classList.toggle('show', p.dataset.k===k));
+    document.querySelector('.detail').scrollTop = 0;
+    try{localStorage.setItem('cargo_pane',k)}catch(e){}
+  }
+  stages.forEach(s=>s.addEventListener('click', ()=>select(s.dataset.k)));
+
+  // ---- path carousel ----
+  const psSlides=document.querySelectorAll('.ps-slide');
+  const psDots=document.querySelectorAll('.ps-dot');
+  const psCount=document.getElementById('ps-count');
+  let psIdx=0;
+  function psShow(i){
+    if(!psSlides.length)return;
+    psIdx=(i+psSlides.length)%psSlides.length;
+    psSlides.forEach((s,n)=>s.classList.toggle('show',n===psIdx));
+    psDots.forEach((d,n)=>d.classList.toggle('on',n===psIdx));
+    if(psCount)psCount.textContent=(psIdx+1)+' / '+psSlides.length;
+    try{localStorage.setItem('cargo_slide',psIdx)}catch(e){}
+  }
+  function psGo(d){psShow(psIdx+d)}
+  document.addEventListener('keydown',e=>{
+    const p=document.querySelector('.pane[data-k="path"]');
+    if(!p||!p.classList.contains('show'))return;
+    if(e.key==='ArrowRight')psGo(1);
+    if(e.key==='ArrowLeft')psGo(-1);
+  });
+
+  // ---- restore last position on load ----
+  try{
+    const ss=localStorage.getItem('cargo_slide');
+    if(ss!==null) psShow(parseInt(ss,10)||0);
+    const sp=localStorage.getItem('cargo_pane');
+    if(sp && document.querySelector('.pane[data-k="'+sp+'"]')) select(sp);
+  }catch(e){}
+</script>
+</body>
+</html>
