@@ -114,6 +114,20 @@
   .tk .p{flex:0 0 auto;font-size:8.5px;font-weight:700;border-radius:5px;padding:2px 7px;text-transform:uppercase;letter-spacing:.3px;margin-top:1px}
   .p-h{background:var(--warn-soft);color:var(--warn)} .p-m{background:#FBEFD8;color:#9A6A12} .p-l{background:var(--panel);color:var(--muted)}
   .tk b{color:var(--ink)} .tk .st{color:var(--muted);font-size:11px}
+  /* ---- CJM ---- */
+  .cjm-persona{display:inline-flex;align-items:center;gap:8px;background:var(--ink);color:#fff;border-radius:9px;padding:7px 14px;font-size:11.5px;margin:4px 0 14px}
+  .cjm-persona b{font-family:var(--display)}
+  .cjm{display:grid;grid-template-columns:94px repeat(6,1fr);gap:1px;background:var(--hair);border:1px solid var(--hair);border-radius:12px;overflow:hidden;font-size:10.5px}
+  .cjm>div{background:#fff;padding:8px 9px;line-height:1.38}
+  .cjm .h{background:var(--ink);color:#fff;font-family:var(--display);font-weight:600;font-size:10.5px;text-align:center;display:flex;align-items:center;justify-content:center}
+  .cjm .rl{background:var(--panel);font-weight:700;font-size:9px;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);display:flex;align-items:center}
+  .cjm .emo{grid-column:2 / 8;padding:6px 4px 2px}
+  .cjm .em{text-align:center;font-size:9.5px;color:var(--slate)}
+  .cjm .em .e{font-size:17px;display:block;line-height:1.2}
+  .cjm .pn{color:var(--warn)} .cjm .op{color:#1F5C3A}
+  .cjm .q{font-style:italic;color:var(--ink)}
+  .cjm .mt{background:var(--panel);font-weight:700;color:var(--ink);font-size:10px;text-align:center;display:flex;align-items:center;justify-content:center}
+  @media(max-width:920px){.cjm{font-size:9.5px;grid-template-columns:78px repeat(6,1fr)}}
   .ov-legend{display:flex;gap:18px;flex-wrap:wrap;font-size:11.5px;color:var(--slate);margin-top:11px}
   .ov-legend span{display:flex;align-items:center;gap:6px}
   .ov-legend i{width:9px;height:9px;border-radius:50%;display:inline-block}
@@ -196,6 +210,11 @@
     <button class="stage" data-k="path" style="background:var(--ink2);border-color:var(--accent)">
       <div class="row1"><span class="num">🎬</span><span class="ttl" style="color:#fff">Путь</span></div>
       <div class="one" style="color:#AEC0DC">Экранный проход: что жмёт, что ждёт</div>
+    </button>
+
+    <button class="stage" data-k="cjmnew" style="background:var(--ink2);border-color:var(--accent)">
+      <div class="row1"><span class="num">🗺</span><span class="ttl" style="color:#fff">CJM · новый</span></div>
+      <div class="one" style="color:#AEC0DC">Карта пути + эмоции (новый перевозчик)</div>
     </button>
 
     <button class="stage" data-k="reg">
@@ -1104,6 +1123,44 @@
       <div style="margin-top:16px;background:var(--accent-soft);border-radius:10px;padding:13px 16px;font-size:12.5px;color:#7a4a25"><b style="color:#9A4A12">💡 Упростить печать и подпись:</b> перевозчики мало разбираются в форматах и фонах. Дать им <b style="color:var(--ink)">просто сфотографировать</b> печать и подпись — платформа сама вырежет фон и сделает чистый PNG (обычная обработка изображения / rembg; v1 — дни, устойчивость к плохим фото — 1–2 нед). Превью «как ляжет на договор» → сохранили один раз. Это <b style="color:var(--ink)">картинка для ЭДО</b> (как сейчас), не юр. ЭЦП — отдельный трек.</div>
 
       <div class="kir"><div class="av">К</div><div class="kt"><span class="who">Кирилл · логист онбординга</span>«Печать/подпись добавляют <b>фоткой</b> — для ЭДО, чтобы не печатать; но не у всех, <b>электронной подписи у них нет</b>». Подпись/печать хранятся как PNG (выбираются, не вносятся каждый раз). Завязка на ЭДО/ПЭП.</div></div>
+    </section>
+
+    <!-- CJM · новый перевозчик -->
+    <section class="pane" data-k="cjmnew">
+      <div class="kick"><b>CJM</b> · новый перевозчик</div>
+      <h1>Customer Journey Map — путь нового перевозчика</h1>
+      <div class="cjm-persona">👤 <b>Персона:</b> частник / небольшая ТК · фура-тент 20 т · впервые на платформе</div>
+      <div class="lead">Эмоциональная кривая + что делает и думает на каждой фазе, каналы, боли, возможности, метрика. Видны две ямы (скрытая цена · торг по телефону) и два пика (увидел цену · выиграл).</div>
+      <div class="cjm">
+        <div class="rl"></div>
+        <div class="h">Регистрация</div><div class="h">Подбор</div><div class="h">Верификация</div><div class="h">Момент истины</div><div class="h">Торг</div><div class="h">Сделка → рейс</div>
+
+        <div class="rl">Эмоция</div>
+        <div class="emo"><svg viewBox="0 0 600 64" style="width:100%;height:auto;display:block"><polyline points="50,34 150,46 250,44 350,12 450,56 550,22" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><circle cx="50" cy="34" r="4" fill="#8A97A8"/><circle cx="150" cy="46" r="4" fill="var(--warn)"/><circle cx="250" cy="44" r="4" fill="var(--warn)"/><circle cx="350" cy="12" r="5" fill="var(--pos)"/><circle cx="450" cy="56" r="5" fill="var(--warn)"/><circle cx="550" cy="22" r="4" fill="var(--pos)"/></svg></div>
+
+        <div class="rl"></div>
+        <div class="em"><span class="e">😐</span>настороже</div><div class="em"><span class="e">😕</span>«дайте цену»</div><div class="em"><span class="e">😬</span>трение</div><div class="em"><span class="e">😀</span>«беру!»</div><div class="em"><span class="e">😞</span>лимбо</div><div class="em"><span class="e">🙂</span>«есть!»</div>
+
+        <div class="rl">Действия</div>
+        <div>Вводит компанию + телефон по ссылке</div><div>Смотрит подборку, открывает груз</div><div>«Узнать ставку» → вносит данные → ждёт</div><div>Видит цену → жмёт «В торг»</div><div>Ставит ставку, ждёт, отвечает на звонок</div><div>Выигрыш → СБ → подпись → едет</div>
+
+        <div class="rl">Мысли</div>
+        <div class="q">«Опять регистрация, я за рулём»</div><div class="q">«Это под меня… но сколько платят?»</div><div class="q">«Лишь бы быстро, что за проверка»</div><div class="q">«О, нормально платят. Беру!»</div><div class="q">«Опять звонок… когда уже?»</div><div class="q">«Есть! лишь бы без возни с бумагами»</div>
+
+        <div class="rl">Каналы</div>
+        <div>ссылка/QR → веб-форма</div><div>платформа: лента, карточка</div><div>платформа (форма) + логист</div><div>платформа (карточка)</div><div>📞 телефон / логист</div><div>платформа + УЛ</div>
+
+        <div class="rl">Боли</div>
+        <div class="pn">длинная форма, ИНН первым</div><div class="pn">цена/комиссия скрыты</div><div class="pn">~14 полей, паспорт; ждёт логиста</div><div class="pn">— (пик, трения мало)</div><div class="pn">торг по телефону; ставка не доходит до менеджера</div><div class="pn">подпись/печать вручную; договор шлёт перевозчик; УЛ</div>
+
+        <div class="rl">Возможности</div>
+        <div class="op">умное поле DaData; ценность до формы</div><div class="op">подборка под профиль; цена-тизер</div><div class="op">автозаполнение ≈14→2; авто-проверка</div><div class="op">цена-награда; разрез продукт/ликвидность</div><div class="op">торг в приложении (промпт, прокси-флор)</div><div class="op">автозаполнение договора; подпись в 1 тап</div>
+
+        <div class="rl">Метрика</div>
+        <div class="mt">2 455 рег</div><div class="mt">фит-rate</div><div class="mt">363 · 14.8%</div><div class="mt">открыл→В торг</div><div class="mt">12 · 3.3% 🔴</div><div class="mt">не измерить</div>
+      </div>
+      <div style="margin-top:14px;background:var(--warn-soft);border-left:3px solid var(--warn);border-radius:0 8px 8px 0;padding:10px 14px;font-size:12px;color:var(--warn)"><b>Источник:</b> мысли и эмоции — <b>гипотеза</b> (голос логиста + наши допущения), до касдева 15 интервью перевозчиков. Боли / каналы / метрики — из деки и наблюдений.</div>
+      <div style="margin-top:12px;font-size:11.5px;color:var(--muted)">Следующий CJM — <b>действующий перевозчик</b> (упрощённый повторный цикл; цель — повторность / доля рейсов). Соберём отдельной вкладкой.</div>
     </section>
 
     <!-- TASKS -->
